@@ -1,0 +1,37 @@
+[
+  {
+    "id": "c1",
+    "name": "a",
+    "category": "Container",
+    "itemList": [
+      {
+        "id": "c1",
+        "name": "b",
+        "category": "Container",
+        "itemList": []
+      },
+      {
+        "id": "c2",
+        "name": "b",
+        "category": "Container",
+        "itemList": [
+          {
+            "id": "axd",
+            "name": "123",
+            "category": "Item"
+          },
+          {
+            "id": "axd",
+            "name": "123",
+            "category": "Item"
+          }
+        ]
+      },
+      {
+        "id": "ic1",
+        "name": "asd",
+        "category": "Item"
+      }
+    ]
+  }
+]
