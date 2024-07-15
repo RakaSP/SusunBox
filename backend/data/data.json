@@ -1,37 +1,10 @@
 [
   {
-    "id": "c1",
-    "name": "a",
-    "category": "Container",
-    "itemList": [
-      {
-        "id": "c1",
-        "name": "b",
-        "category": "Container",
-        "itemList": []
-      },
-      {
-        "id": "c2",
-        "name": "b",
-        "category": "Container",
-        "itemList": [
-          {
-            "id": "axd",
-            "name": "123",
-            "category": "Item"
-          },
-          {
-            "id": "axd",
-            "name": "123",
-            "category": "Item"
-          }
-        ]
-      },
-      {
-        "id": "ic1",
-        "name": "asd",
-        "category": "Item"
-      }
-    ]
+    "id": "1",
+    "type": "VehicleContainer",
+    "size_x": 150,
+    "size_y": 150,
+    "size_z": 150,
+    "max_weight": 30
   }
 ]
