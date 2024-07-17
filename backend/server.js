@@ -114,11 +114,37 @@ app.put("/DND", (req, res) => {
   res.json({ message: "Orders updated successfully" });
 });
 
+app.delete("/orders/:orderId", (req, res) => {
+  const orderId = req.params.orderId;
+
+  const initialLength = data.length;
+  data = data.filter((item) => !(item.id === orderId && item.type === "Order"));
+
+  if (data.length < initialLength) {
+    res.json({ message: "Order deleted from data" });
+  } else {
+    res.status(404).json({ message: "Order not found" });
+  }
+});
+
+app.delete("/containers/:containerId", (req, res) => {
+  const containerId = req.params.containerId;
+
+  const initialLength = data.length;
+  data = data.filter(
+    (item) => !(item.id === containerId && item.type === "Container")
+  );
+
+  if (data.length < initialLength) {
+    res.json({ message: "Container deleted from data" });
+  } else {
+    res.status(404).json({ message: "Container not found" });
+  }
+});
+
 app.delete("/orders/:orderId/items/:itemId", (req, res) => {
   const orderId = req.params.orderId;
   const itemId = req.params.itemId;
-  console.log("order id:", orderId);
-  console.log("id:", itemId);
   let orderFound = false;
   data.forEach((item) => {
     if (item.type === "Order" && item.id === orderId) {

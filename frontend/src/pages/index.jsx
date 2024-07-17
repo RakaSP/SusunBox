@@ -10,6 +10,7 @@ import {
   faPlus,
   faTrash,
   faCheck,
+  faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "../assets/susunbox_logo.png";
 const Index = () => {
@@ -54,38 +55,37 @@ const Index = () => {
   const [inputWeightFocused, setInputWeightFocused] = useState(false);
   const [lifoActive, setLifoActive] = useState(false);
 
-  const handleLifoChange = () => {
-    setLifoActive(!lifoActive);
-  };
+  // Handlers
 
   // Swap data on drag and drop event
   const handleDragEnd = async (result) => {
-    if (result.destination.index === result.source.index) {
-      return;
-    }
+    if (result.destination !== null) {
+      if (result.destination.index === result.source.index) {
+        return;
+      }
 
-    const updatedData = Array.from(ordersData);
-    const [reorderedItem] = updatedData.splice(result.source.index, 1);
-    let destinationIndex = result.destination.index;
-    if (destinationIndex > result.source.index) destinationIndex--;
-    const destinationItem = updatedData[destinationIndex];
+      const updatedData = Array.from(ordersData);
+      const [reorderedItem] = updatedData.splice(result.source.index, 1);
+      let destinationIndex = result.destination.index;
+      if (destinationIndex > result.source.index) destinationIndex--;
+      const destinationItem = updatedData[destinationIndex];
 
-    const tempPriority = reorderedItem.priority;
-    reorderedItem.priority = destinationItem.priority;
-    destinationItem.priority = tempPriority;
+      const tempPriority = reorderedItem.priority;
+      reorderedItem.priority = destinationItem.priority;
+      destinationItem.priority = tempPriority;
 
-    updatedData.splice(result.destination.index, 0, reorderedItem);
+      updatedData.splice(result.destination.index, 0, reorderedItem);
 
-    setOrdersData(updatedData);
-    try {
-      await axios.put("http://localhost:3001/DND", updatedData);
-      console.log("Data sorted and updated in backend");
-    } catch (error) {
-      console.error("Error updating data in backend:", error);
+      setOrdersData(updatedData);
+      try {
+        await axios.put("http://localhost:3001/DND", updatedData);
+        console.log("Data sorted and updated in backend");
+      } catch (error) {
+        console.error("Error updating data in backend:", error);
+      }
     }
   };
 
-  // Handlers
   const resourceHeaderClickHandler = (type) => {
     setSelectedResource(type);
     setNewResource({ ...newResource, type: type });
@@ -117,6 +117,7 @@ const Index = () => {
     setOrdersData(resData.filter((item) => item.type === "Order"));
     setLoading(false);
   };
+
   // Axios API calls
   const fetchData = async () => {
     setLoading(true);
@@ -160,6 +161,24 @@ const Index = () => {
       fetchData();
     } catch (error) {
       console.error("Error deleting resource", error);
+    }
+  };
+
+  const deleteOrder = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/orders/${id}`);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting order", error);
+    }
+  };
+
+  const deleteContainer = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/containers/${id}`);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting order", error);
     }
   };
 
@@ -563,7 +582,6 @@ const Index = () => {
                     {selectedResource === "Container" &&
                       containersData.map((container) => {
                         if (!container.weight) container.weight = 0;
-
                         return (
                           <div
                             key={"Con-" + container.id}
@@ -583,10 +601,15 @@ const Index = () => {
                                 Max Weight: {container.max_weight}
                                 <span>Kg</span>
                               </p>
-                              <p className="flex-1 text-sm text-[#0e2040] opacity-[0.72]">
-                                Weight: {container.weight}
-                                <span>Kg</span>
-                              </p>
+                            </div>
+                            <div
+                              className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
+                              onClick={() => deleteContainer(container.id)}
+                            >
+                              <FontAwesomeIcon
+                                className="h-[42%] w-[42%]"
+                                icon={faMinus}
+                              />
                             </div>
                           </div>
                         );
@@ -599,6 +622,7 @@ const Index = () => {
                           key={order.id}
                           draggableId={"Order-" + order.id}
                           index={index}
+                          isDragDisabled={lifoActive === false}
                         >
                           {(provided) => (
                             <div
@@ -610,18 +634,35 @@ const Index = () => {
                               <div className="flex flex-row justify-between mb-4 items-center text-[#0e2040] font-semibold">
                                 <div className="">
                                   Order#{order.id}{" "}
-                                  <span className="opacity-[0.72] text-[12px]">
+                                  <span
+                                    className={`${
+                                      !lifoActive && "hidden"
+                                    } opacity-[0.72] text-[12px]`}
+                                  >
                                     Priority: {order.priority}
                                   </span>
                                 </div>
-                                <div
-                                  className="w-[40px] h-[40px] rounded-md flex items-center justify-center font-[24px] bg-[#378EFF] cursor-pointer"
-                                  onClick={() => addItemClickHandler(order.id)}
-                                >
-                                  <FontAwesomeIcon
-                                    className="h-[42%] w-[42%]"
-                                    icon={faPlus}
-                                  />
+                                <div className="flex flex-row gap-2">
+                                  <div
+                                    className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#378EFF] text-white cursor-pointer"
+                                    onClick={() =>
+                                      addItemClickHandler(order.id)
+                                    }
+                                  >
+                                    <FontAwesomeIcon
+                                      className="h-[42%] w-[42%]"
+                                      icon={faPlus}
+                                    />
+                                  </div>
+                                  <div
+                                    className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
+                                    onClick={() => deleteOrder(order.id)}
+                                  >
+                                    <FontAwesomeIcon
+                                      className="h-[42%] w-[42%]"
+                                      icon={faMinus}
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
@@ -652,14 +693,14 @@ const Index = () => {
                                     Weight: {item.weight}
                                   </div>
                                   <div
-                                    className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#8B0000] cursor-pointer"
+                                    className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
                                     onClick={() =>
                                       deleteResource(order.id, item.id)
                                     }
                                   >
                                     <FontAwesomeIcon
                                       className="h-[42%] w-[42%]"
-                                      icon={faTrash}
+                                      icon={faMinus}
                                     />
                                   </div>
                                 </div>
@@ -691,20 +732,22 @@ const Index = () => {
               icon={faXmark}
               onClick={() => closeFormClickHandler()}
             />
-            {renderSelectType(selectedResource)}
-            {renderSelectOrder(newResource.type)}
-            {renderInputId(newResource.type)}
-            {renderInputName(newResource.type)}
-            {lifoActive && renderInputPriority(newResource.type)}
-            {renderInputSize(newResource.type)}
-            {renderInputMaxWeight(newResource.type)}
-            {renderInputWeight(newResource.type)}
-            <button
-              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-200"
-              onClick={createResource}
-            >
-              Create
-            </button>
+            <form>
+              {renderSelectType(selectedResource)}
+              {renderSelectOrder(newResource.type)}
+              {renderInputId(newResource.type)}
+              {renderInputName(newResource.type)}
+              {lifoActive && renderInputPriority(newResource.type)}
+              {renderInputSize(newResource.type)}
+              {renderInputMaxWeight(newResource.type)}
+              {renderInputWeight(newResource.type)}
+              <button
+                className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-200"
+                onClick={createResource}
+              >
+                Create
+              </button>
+            </form>
           </div>
         </div>
       </React.Fragment>
