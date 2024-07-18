@@ -34,8 +34,8 @@ const Index = () => {
   const [vehicleData, setVehicleData] = useState([]);
   const [ordersData, setOrdersData] = useState([]);
   const [newResource, setNewResource] = useState({
-    id: null,
-    type: "Container",
+    ID: null,
+    Type: "Container",
   });
 
   // Form State
@@ -47,9 +47,9 @@ const Index = () => {
   const [inputNameFocused, setinputNameFocused] = useState(false);
   const [inputPriorityFocused, setInputPriorityFocused] = useState(false);
   const [inputSizeFocused, setInputSizeFocused] = useState({
-    size_x: false,
-    size_y: false,
-    size_z: false,
+    SizeX: false,
+    SizeY: false,
+    SizeZ: false,
   });
   const [inputMWFocused, setInputMWFocused] = useState(false);
   const [inputWeightFocused, setInputWeightFocused] = useState(false);
@@ -70,9 +70,9 @@ const Index = () => {
       if (destinationIndex > result.source.index) destinationIndex--;
       const destinationItem = updatedData[destinationIndex];
 
-      const tempPriority = reorderedItem.priority;
-      reorderedItem.priority = destinationItem.priority;
-      destinationItem.priority = tempPriority;
+      const tempPriority = reorderedItem.Priority;
+      reorderedItem.Priority = destinationItem.Priority;
+      destinationItem.Priority = tempPriority;
 
       updatedData.splice(result.destination.index, 0, reorderedItem);
 
@@ -86,14 +86,14 @@ const Index = () => {
     }
   };
 
-  const resourceHeaderClickHandler = (type) => {
-    setSelectedResource(type);
-    setNewResource({ ...newResource, type: type });
+  const resourceHeaderClickHandler = (Type) => {
+    setSelectedResource(Type);
+    setNewResource({ ...newResource, Type: Type });
   };
 
   const addItemClickHandler = (selectedOrderId) => {
     setSelectedResource("Item");
-    setNewResource({ ...newResource, type: "Item", orderId: selectedOrderId });
+    setNewResource({ ...newResource, Type: "Item", OrderID: selectedOrderId });
     setShowForm(true);
   };
 
@@ -101,20 +101,20 @@ const Index = () => {
     setShowForm(false);
     if (selectedResource === "Item") {
       setSelectedResource("Order");
-      setNewResource({ ...newResource, type: "Order" });
+      setNewResource({ ...newResource, Type: "Order" });
     }
   };
 
   const batchSetState = (resData) => {
     const getVehicleData = resData.filter(
-      (item) => item.type === "VehicleContainer"
+      (item) => item.Type === "VehicleContainer"
     );
     setData(resData);
     if (vehicleData.length === 0) {
       setVehicleData(getVehicleData[0]);
     }
-    setContainersData(resData.filter((item) => item.type === "Container"));
-    setOrdersData(resData.filter((item) => item.type === "Order"));
+    setContainersData(resData.filter((item) => item.Type === "Container"));
+    setOrdersData(resData.filter((item) => item.Type === "Order"));
     setLoading(false);
   };
 
@@ -140,14 +140,14 @@ const Index = () => {
     }
 
     try {
-      if (newResource.type === "Item") {
+      if (newResource.Type === "Item") {
         await axios.post("http://localhost:3001/item", newResource);
-      } else if (newResource.type === "Order") {
+      } else if (newResource.Type === "Order") {
         await axios.post("http://localhost:3001/order", newResource);
       } else {
         await axios.post("http://localhost:3001/container", newResource);
       }
-      setNewResource({ id: null, type: newResource.type });
+      setNewResource({ ID: null, Type: newResource.Type });
       fetchData();
       console.log(data);
     } catch (error) {
@@ -155,27 +155,27 @@ const Index = () => {
     }
   };
 
-  const deleteResource = async (id, itemId) => {
+  const deleteResource = async (ID, itemId) => {
     try {
-      await axios.delete(`http://localhost:3001/orders/${id}/items/${itemId}`);
+      await axios.delete(`http://localhost:3001/orders/${ID}/items/${itemId}`);
       fetchData();
     } catch (error) {
       console.error("Error deleting resource", error);
     }
   };
 
-  const deleteOrder = async (id) => {
+  const deleteOrder = async (ID) => {
     try {
-      await axios.delete(`http://localhost:3001/orders/${id}`);
+      await axios.delete(`http://localhost:3001/orders/${ID}`);
       fetchData();
     } catch (error) {
       console.error("Error deleting order", error);
     }
   };
 
-  const deleteContainer = async (id) => {
+  const deleteContainer = async (ID) => {
     try {
-      await axios.delete(`http://localhost:3001/containers/${id}`);
+      await axios.delete(`http://localhost:3001/containers/${ID}`);
       fetchData();
     } catch (error) {
       console.error("Error deleting order", error);
@@ -193,15 +193,15 @@ const Index = () => {
   };
 
   // Render Functions
-  const renderSelectType = (type) => {
+  const renderSelectType = (Type) => {
     return (
       <React.Fragment>
         <input
-          type="text"
+          Type="text"
           className="block w-full p-2 mb-4 border border-gray-300 rounded bg-[#A7AABD]"
-          value={type}
+          value={Type}
           onChange={(e) =>
-            setNewResource({ ...newResource, type: e.target.value })
+            setNewResource({ ...newResource, Type: e.target.value })
           }
           disabled
         />
@@ -209,12 +209,12 @@ const Index = () => {
     );
   };
 
-  const renderInputId = (type) => {
+  const renderInputId = (Type) => {
     return (
       <React.Fragment>
         <div className="relative h-[48px] mb-4">
           <label
-            htmlFor="id"
+            htmlFor="ID"
             className={`${labelStyle} ${
               inputIdFocused
                 ? "text-[12px] left-[8px] top-[2px]"
@@ -225,18 +225,18 @@ const Index = () => {
             {selectedResource === "Item" ? "Item ID" : "ID"}
           </label>
           <input
-            id="id"
+            id="ID"
             className={`${
-              type ? "block" : "hidden"
+              Type ? "block" : "hidden"
             } w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
-            type="number"
-            value={newResource.id}
+            Type="number"
+            value={newResource.ID}
             onFocus={() => setInputIdFocused(true)}
             onBlur={(e) =>
               e.target.value.trim() === "" && setInputIdFocused(false)
             }
             onChange={(e) =>
-              setNewResource({ ...newResource, id: e.target.value })
+              setNewResource({ ...newResource, ID: e.target.value })
             }
           />
         </div>
@@ -246,15 +246,15 @@ const Index = () => {
 
   const renderOrderOptions = (data) => {
     return data
-      .filter((item) => item.type === "Order")
+      .filter((item) => item.Type === "Order")
       .map((item) => (
-        <React.Fragment key={"Order-" + item.id}>
-          <option value={item.id}>
-            {item.id}: {item.name}
+        <React.Fragment key={"Order-" + item.ID}>
+          <option value={item.ID}>
+            {item.ID}: {item.Name}
           </option>
-          {item.itemList &&
-            item.itemList.length > 0 &&
-            renderOrderOptions(item.itemList)}
+          {item.ItemList &&
+            item.ItemList.length > 0 &&
+            renderOrderOptions(item.ItemList)}
         </React.Fragment>
       ));
   };
@@ -274,12 +274,12 @@ const Index = () => {
             Order ID
           </label>
           <input
-            type="text"
+            Type="text"
             className="block w-full px-3 pt-3 pb-1 border border-gray-300 rounded bg-[#A7AABD]"
             disabled
-            value={newResource.orderId}
+            value={newResource.OrderID}
             onChange={(e) =>
-              setNewResource({ ...newResource, orderId: e.target.value })
+              setNewResource({ ...newResource, OrderID: e.target.value })
             }
           />
         </div>
@@ -298,7 +298,7 @@ const Index = () => {
           } relative h-[48px] mb-4`}
         >
           <label
-            htmlFor="name"
+            htmlFor="Name"
             className={`${labelStyle} ${
               inputNameFocused
                 ? "text-[12px] left-[8px] top-[2px]"
@@ -310,14 +310,14 @@ const Index = () => {
           </label>
           <input
             className={` w-full px-3 h-[48px] pt-3 pb-1 mb-4 border border-gray-300 rounded`}
-            type="text"
+            Type="text"
             onFocus={() => setinputNameFocused(true)}
             onBlur={(e) =>
               e.target.value.trim() === "" && setinputNameFocused(false)
             }
-            value={newResource.name}
+            value={newResource.Name}
             onChange={(e) =>
-              setNewResource({ ...newResource, name: e.target.value })
+              setNewResource({ ...newResource, Name: e.target.value })
             }
           />
         </div>
@@ -331,7 +331,7 @@ const Index = () => {
         <React.Fragment>
           <div className="relative h-[48px] mb-4">
             <label
-              htmlFor="priority"
+              htmlFor="Priority"
               className={`${labelStyle} ${
                 inputPriorityFocused
                   ? "text-[12px] left-[8px] top-[2px]"
@@ -343,14 +343,14 @@ const Index = () => {
             </label>
             <input
               className={`w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
-              type="number"
-              value={newResource.priority}
+              Type="number"
+              value={newResource.Priority}
               onFocus={() => setInputPriorityFocused(true)}
               onBlur={(e) =>
                 e.target.value.trim() === "" && setInputPriorityFocused(false)
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, priority: e.target.value })
+                setNewResource({ ...newResource, Priority: e.target.value })
               }
             />
           </div>
@@ -365,9 +365,9 @@ const Index = () => {
         <div className="flex flex-row justify-between h-[48px] mb-4">
           <div className="relative h-full">
             <label
-              htmlFor="size_x"
+              htmlFor="SizeX"
               className={`${labelStyle} ${
-                inputSizeFocused.size_x || newResource.size_x
+                inputSizeFocused.SizeX || newResource.SizeX
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -376,29 +376,29 @@ const Index = () => {
               Size X
             </label>
             <input
-              id="size_x"
+              id="SizeX"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.size_x ? "border-blue-500" : ""
+                inputSizeFocused.SizeX ? "border-blue-500" : ""
               }`}
-              type="number"
-              value={newResource.size_x}
+              Type="number"
+              value={newResource.SizeX}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, size_x: true })
+                setInputSizeFocused({ ...inputSizeFocused, SizeX: true })
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, size_x: false })
+                setInputSizeFocused({ ...inputSizeFocused, SizeX: false })
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, size_x: e.target.value })
+                setNewResource({ ...newResource, SizeX: e.target.value })
               }
             />
           </div>
           <div className="relative">
             <label
-              htmlFor="size_y"
+              htmlFor="SizeY"
               className={`${labelStyle} ${
-                inputSizeFocused.size_y
+                inputSizeFocused.SizeY
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -407,29 +407,29 @@ const Index = () => {
               Size Y
             </label>
             <input
-              id="size_y"
+              id="SizeY"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.size_y ? "border-blue-500" : ""
+                inputSizeFocused.SizeY ? "border-blue-500" : ""
               }`}
-              type="number"
-              value={newResource.size_y}
+              Type="number"
+              value={newResource.SizeY}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, size_y: true })
+                setInputSizeFocused({ ...inputSizeFocused, SizeY: true })
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, size_y: false })
+                setInputSizeFocused({ ...inputSizeFocused, SizeY: false })
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, size_y: e.target.value })
+                setNewResource({ ...newResource, SizeY: e.target.value })
               }
             />
           </div>
           <div className="relative">
             <label
-              htmlFor="size_z"
+              htmlFor="SizeZ"
               className={`${labelStyle} ${
-                inputSizeFocused.size_z
+                inputSizeFocused.SizeZ
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -438,21 +438,21 @@ const Index = () => {
               Size Z
             </label>
             <input
-              id="size_z"
+              id="SizeZ"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.size_z ? "border-blue-500" : ""
+                inputSizeFocused.SizeZ ? "border-blue-500" : ""
               } text-base`}
-              type="number"
-              value={newResource.size_z}
+              Type="number"
+              value={newResource.SizeZ}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, size_z: true })
+                setInputSizeFocused({ ...inputSizeFocused, SizeZ: true })
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, size_z: false })
+                setInputSizeFocused({ ...inputSizeFocused, SizeZ: false })
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, size_z: e.target.value })
+                setNewResource({ ...newResource, SizeZ: e.target.value })
               }
             />
           </div>
@@ -468,7 +468,7 @@ const Index = () => {
         <React.Fragment>
           <div className="relative h-[48px] mb-4">
             <label
-              htmlFor="max_weight"
+              htmlFor="MaxWeight"
               className={`${labelStyle} ${
                 inputMWFocused
                   ? "text-[12px] left-[8px] top-[2px]"
@@ -480,14 +480,14 @@ const Index = () => {
             </label>
             <input
               className="w-full h-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base  text-[16px]"
-              type="number"
-              value={newResource.max_weight}
+              Type="number"
+              value={newResource.MaxWeight}
               onFocus={() => setInputMWFocused(true)}
               onBlur={(e) =>
                 e.target.value.trim() === "" && setInputMWFocused(false)
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, max_weight: e.target.value })
+                setNewResource({ ...newResource, MaxWeight: e.target.value })
               }
             />
           </div>
@@ -502,7 +502,7 @@ const Index = () => {
         <React.Fragment>
           <div className="h-[48px] relative mb-4">
             <label
-              htmlFor="weight"
+              htmlFor="Weight"
               className={`${labelStyle} ${
                 inputWeightFocused
                   ? "text-[12px] left-[8px] top-[2px]"
@@ -513,14 +513,14 @@ const Index = () => {
             </label>
             <input
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              type="number"
-              value={newResource.weight}
+              Type="number"
+              value={newResource.Weight}
               onFocus={() => setInputWeightFocused(true)}
               onBlur={(e) =>
                 e.target.value.trim === "" && setInputWeightFocused(false)
               }
               onChange={(e) =>
-                setNewResource({ ...newResource, weight: e.target.value })
+                setNewResource({ ...newResource, Weight: e.target.value })
               }
             />
           </div>
@@ -581,30 +581,30 @@ const Index = () => {
                   <div {...provided.droppableProps} ref={provided.innerRef}>
                     {selectedResource === "Container" &&
                       containersData.map((container) => {
-                        if (!container.weight) container.weight = 0;
+                        if (!container.Weight) container.Weight = 0;
                         return (
                           <div
-                            key={"Con-" + container.id}
+                            key={"Con-" + container.ID}
                             className={`${itemContainerStyle} relative`}
                           >
                             <div className={`text-[#0e2040] font-semibold `}>
-                              Container #{container.id}
+                              Container #{container.ID}
                             </div>
                             <div
                               className={`text-sm text-[#0e2040] opacity-[0.72]`}
                             >
-                              Size: {container.size_x}, {container.size_y},{" "}
-                              {container.size_z}
+                              Size: {container.SizeX}, {container.SizeY},{" "}
+                              {container.SizeZ}
                             </div>
                             <div className="flex flex-row">
                               <p className="flex-1 text-sm text-[#0e2040] opacity-[0.72]">
-                                Max Weight: {container.max_weight}
+                                Max Weight: {container.MaxWeight}
                                 <span>Kg</span>
                               </p>
                             </div>
                             <div
                               className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                              onClick={() => deleteContainer(container.id)}
+                              onClick={() => deleteContainer(container.ID)}
                             >
                               <FontAwesomeIcon
                                 className="h-[42%] w-[42%]"
@@ -619,8 +619,8 @@ const Index = () => {
                       selectedResource === "Item") &&
                       ordersData.map((order, index) => (
                         <Draggable
-                          key={order.id}
-                          draggableId={"Order-" + order.id}
+                          key={order.ID}
+                          draggableId={"Order-" + order.ID}
                           index={index}
                           isDragDisabled={lifoActive === false}
                         >
@@ -633,20 +633,20 @@ const Index = () => {
                             >
                               <div className="flex flex-row justify-between mb-4 items-center text-[#0e2040] font-semibold">
                                 <div className="">
-                                  Order#{order.id}{" "}
+                                  Order#{order.ID}{" "}
                                   <span
                                     className={`${
                                       !lifoActive && "hidden"
                                     } opacity-[0.72] text-[12px]`}
                                   >
-                                    Priority: {order.priority}
+                                    Priority: {order.Priority}
                                   </span>
                                 </div>
                                 <div className="flex flex-row gap-2">
                                   <div
                                     className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#378EFF] text-white cursor-pointer"
                                     onClick={() =>
-                                      addItemClickHandler(order.id)
+                                      addItemClickHandler(order.ID)
                                     }
                                   >
                                     <FontAwesomeIcon
@@ -656,7 +656,7 @@ const Index = () => {
                                   </div>
                                   <div
                                     className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                                    onClick={() => deleteOrder(order.id)}
+                                    onClick={() => deleteOrder(order.ID)}
                                   >
                                     <FontAwesomeIcon
                                       className="h-[42%] w-[42%]"
@@ -666,36 +666,36 @@ const Index = () => {
                                 </div>
                               </div>
 
-                              {order.itemList.map((item) => (
+                              {order.ItemList.map((item) => (
                                 <div
-                                  key={"Item-" + item.id}
+                                  key={"Item-" + item.ID}
                                   className={`${itemContainerStyle} relative`}
                                 >
                                   <div
                                     className={`text-[#0e2040] font-semibold`}
                                   >
-                                    Item#{item.id}
+                                    Item#{item.ID}
                                   </div>
                                   <div
                                     className={`text-sm text-[#0e2040] opacity-[0.72]`}
                                   >
-                                    Item Name: {item.name}
+                                    Item Name: {item.Name}
                                   </div>
                                   <div
                                     className={`text-sm text-[#0e2040] opacity-[0.72]`}
                                   >
-                                    Size: {item.size_x}, {item.size_y},{" "}
-                                    {item.size_z}
+                                    Size: {item.SizeX}, {item.SizeY},{" "}
+                                    {item.SizeZ}
                                   </div>
                                   <div
                                     className={`text-sm text-[#0e2040] opacity-[0.72]`}
                                   >
-                                    Weight: {item.weight}
+                                    Weight: {item.Weight}
                                   </div>
                                   <div
                                     className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
                                     onClick={() =>
-                                      deleteResource(order.id, item.id)
+                                      deleteResource(order.ID, item.ID)
                                     }
                                   >
                                     <FontAwesomeIcon
@@ -734,13 +734,13 @@ const Index = () => {
             />
             <form>
               {renderSelectType(selectedResource)}
-              {renderSelectOrder(newResource.type)}
-              {renderInputId(newResource.type)}
-              {renderInputName(newResource.type)}
-              {lifoActive && renderInputPriority(newResource.type)}
-              {renderInputSize(newResource.type)}
-              {renderInputMaxWeight(newResource.type)}
-              {renderInputWeight(newResource.type)}
+              {renderSelectOrder(newResource.Type)}
+              {renderInputId(newResource.Type)}
+              {renderInputName(newResource.Type)}
+              {lifoActive && renderInputPriority(newResource.Type)}
+              {renderInputSize(newResource.Type)}
+              {renderInputMaxWeight(newResource.Type)}
+              {renderInputWeight(newResource.Type)}
               <button
                 className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-200"
                 onClick={createResource}
@@ -768,11 +768,11 @@ const Index = () => {
               Vehicle Name
             </label>
             <input
-              type="text"
+              Type="text"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.name}
+              value={vehicleData.Name}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, name: e.target.value })
+                setVehicleData({ ...vehicleData, Name: e.target.value })
               }
             />
           </div>
@@ -784,11 +784,11 @@ const Index = () => {
               Size X
             </label>
             <input
-              type="number"
+              Type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.size_x}
+              value={vehicleData.SizeX}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, size_x: e.target.value })
+                setVehicleData({ ...vehicleData, SizeX: e.target.value })
               }
             />
           </div>
@@ -797,17 +797,17 @@ const Index = () => {
               htmlFor=""
               className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, size_y: e.target.value })
+                setVehicleData({ ...vehicleData, SizeY: e.target.value })
               }
             >
               Size Y
             </label>
             <input
-              type="number"
+              Type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.size_y}
+              value={vehicleData.SizeY}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, size_y: e.target.value })
+                setVehicleData({ ...vehicleData, SizeY: e.target.value })
               }
             />
           </div>
@@ -819,11 +819,11 @@ const Index = () => {
               Size Z
             </label>
             <input
-              type="number"
+              Type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.size_z}
+              value={vehicleData.SizeZ}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, size_z: e.target.value })
+                setVehicleData({ ...vehicleData, SizeZ: e.target.value })
               }
             />
           </div>
@@ -835,11 +835,11 @@ const Index = () => {
               Max Weight
             </label>
             <input
-              type="number"
+              Type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.max_weight}
+              value={vehicleData.MaxWeight}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, max_weight: e.target.value })
+                setVehicleData({ ...vehicleData, MaxWeight: e.target.value })
               }
             />
           </div>

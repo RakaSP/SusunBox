@@ -14,13 +14,13 @@ app.use(cors());
 let data = [];
 let processedData = [];
 data.push({
-  id: "1",
-  name: "Truck",
-  type: "VehicleContainer",
-  size_x: 150,
-  size_y: 150,
-  size_z: 150,
-  max_weight: 30,
+  ID: "1",
+  Name: "Truck",
+  Type: "VehicleContainer",
+  SizeX: 150,
+  SizeY: 150,
+  SizeZ: 150,
+  MaxWeight: 30,
 });
 
 app.get("/resource", (req, res) => {
@@ -34,62 +34,62 @@ app.get("/processedResource", (req, res) => {
 
 const pushItemList = (
   data,
-  { id, type, name, orderId, size_x, size_y, size_z, weight }
+  { ID, Type, Name, OrderID, SizeX, SizeY, SizeZ, Weight }
 ) => {
   data.map((item) => {
-    if (item.id === orderId && item.type === "Order") {
-      item.itemList.push({
-        id,
-        name,
-        type,
-        orderId,
-        size_x,
-        size_y,
-        size_z,
-        weight,
+    if (item.ID === OrderID && item.Type === "Order") {
+      item.ItemList.push({
+        ID,
+        Name,
+        Type,
+        OrderID,
+        SizeX,
+        SizeY,
+        SizeZ,
+        Weight,
       });
     }
   });
 };
 
 app.post("/container", (req, res) => {
-  const { id, type, size_x, size_y, size_z, max_weight } = req.body;
-  data.push({ id, type, size_x, size_y, size_z, max_weight });
+  const { ID, Type, SizeX, SizeY, SizeZ, MaxWeight } = req.body;
+  data.push({ ID, Type, SizeX, SizeY, SizeZ, MaxWeight });
   res.status(201).json({ message: "Container Created" });
 });
 
 app.post("/order", (req, res) => {
-  const { id, type, name, priority } = req.body;
-  let effectivePriority = priority;
+  const { ID, Type, Name, Priority } = req.body;
+  let effectivePriority = Priority;
   if (effectivePriority === undefined) {
     let highestPriority = 0;
     for (const item of data) {
       console.log("here", item);
-      if (item.type === "Order" && item.priority > highestPriority) {
-        highestPriority = item.priority;
+      if (item.Type === "Order" && item.Priority > highestPriority) {
+        highestPriority = item.Priority;
       }
     }
     effectivePriority = highestPriority + 1;
   }
   if (typeof effectivePriority === "string")
     effectivePriority = parseInt(effectivePriority, 10);
-  const itemList = [];
-  data.push({ id, type, name, priority: effectivePriority, itemList });
-  data.sort((a, b) => a.priority - b.priority);
+  const ItemList = [];
+  data.push({ ID, Type, Name, Priority: effectivePriority, ItemList });
+  data.sort((a, b) => a.Priority - b.Priority);
   res.status(201).json({ message: "Order Created" });
 });
 
 app.post("/item", (req, res) => {
-  const { id, type, name, orderId, size_x, size_y, size_z, weight } = req.body;
+  const { ID, Type, Name, OrderID, SizeX, SizeY, SizeZ, Weight } = req.body;
   pushItemList(data, {
-    id,
-    name,
-    type,
-    orderId,
-    size_x,
-    size_y,
-    size_z,
-    weight,
+    ID,
+    Name,
+    Type,
+    OrderID,
+    SizeX,
+    SizeY,
+    SizeZ,
+    Weight,
   });
 
   res.status(201).json({ message: "Item Added" });
@@ -98,27 +98,27 @@ app.post("/item", (req, res) => {
 app.put("/DND", (req, res) => {
   const updatedOrders = req.body;
 
-  data = data.filter((item) => item.type !== "Order");
+  data = data.filter((item) => item.Type !== "Order");
   console.log(updatedOrders);
   console.log(data);
   updatedOrders.forEach((order) => {
     data.push({
-      id: order.id,
-      type: "Order",
-      name: order.name,
-      priority: order.priority,
-      itemList: order.itemList,
+      ID: order.ID,
+      Type: "Order",
+      Name: order.Name,
+      Priority: order.Priority,
+      ItemList: order.ItemList,
     });
   });
 
   res.json({ message: "Orders updated successfully" });
 });
 
-app.delete("/orders/:orderId", (req, res) => {
-  const orderId = req.params.orderId;
+app.delete("/orders/:OrderID", (req, res) => {
+  const OrderID = req.params.OrderID;
 
   const initialLength = data.length;
-  data = data.filter((item) => !(item.id === orderId && item.type === "Order"));
+  data = data.filter((item) => !(item.ID === OrderID && item.Type === "Order"));
 
   if (data.length < initialLength) {
     res.json({ message: "Order deleted from data" });
@@ -132,7 +132,7 @@ app.delete("/containers/:containerId", (req, res) => {
 
   const initialLength = data.length;
   data = data.filter(
-    (item) => !(item.id === containerId && item.type === "Container")
+    (item) => !(item.ID === containerId && item.Type === "Container")
   );
 
   if (data.length < initialLength) {
@@ -142,13 +142,13 @@ app.delete("/containers/:containerId", (req, res) => {
   }
 });
 
-app.delete("/orders/:orderId/items/:itemId", (req, res) => {
-  const orderId = req.params.orderId;
+app.delete("/orders/:OrderID/items/:itemId", (req, res) => {
+  const OrderID = req.params.OrderID;
   const itemId = req.params.itemId;
   let orderFound = false;
   data.forEach((item) => {
-    if (item.type === "Order" && item.id === orderId) {
-      item.itemList = item.itemList.filter((item) => item.id !== itemId);
+    if (item.Type === "Order" && item.ID === OrderID) {
+      item.ItemList = item.ItemList.filter((item) => item.ID !== itemId);
       orderFound = true;
     }
   });
@@ -160,7 +160,7 @@ app.delete("/orders/:orderId/items/:itemId", (req, res) => {
 });
 
 app.post("/save-json", (req, res) => {
-  const newData = data.filter((item) => item.type !== "VehicleContainer");
+  const newData = data.filter((item) => item.Type !== "VehicleContainer");
   newData.push(req.body);
   const jsonData = newData;
   // const jsonData = req.body;

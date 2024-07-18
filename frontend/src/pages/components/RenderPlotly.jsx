@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-redeclare */
 
-// Note: fetch data container, itemList based on pathId
+// Note: fetch data container, Item based on pathId
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../../styles/style";
 import { useParams } from "react-router-dom";
@@ -13,13 +13,13 @@ const RenderPlotly = ({ selectedContainer }) => {
   useEffect(() => {
     const containerSize = [
       {
-        size_x: selectedContainer.size_x,
-        size_y: selectedContainer.size_y,
-        size_z: selectedContainer.size_z,
+        SizeX: selectedContainer.SizeX,
+        SizeY: selectedContainer.SizeY,
+        SizeZ: selectedContainer.SizeZ,
       },
     ];
     const packData = [];
-    selectedContainer.itemList.map((item) => packData.push(item));
+    selectedContainer.ItemList.map((item) => packData.push(item));
     // function to import plotly
     const importPlotly = async () => {
       return new Promise((resolve, reject) => {
@@ -41,17 +41,17 @@ const RenderPlotly = ({ selectedContainer }) => {
 
       const boxPos = [0, 0, 0];
       const boxSize = [
-        containerSize[0].size_x,
-        containerSize[0].size_y,
-        containerSize[0].size_z,
+        containerSize[0].SizeX,
+        containerSize[0].SizeY,
+        containerSize[0].SizeZ,
       ];
 
       let itemPosList = [];
       let itemSizeList = [];
       let productCodeList = [];
       packData.forEach((item) => {
-        itemPosList.push([item.pos_x, item.pos_y, item.pos_z]);
-        itemSizeList.push([item.size_x, item.size_y, item.size_z]);
+        itemPosList.push([item.PosX, item.PosY, item.PosZ]);
+        itemSizeList.push([item.SizeX, item.SizeY, item.SizeZ]);
         productCodeList.push(item.product_code);
       });
 

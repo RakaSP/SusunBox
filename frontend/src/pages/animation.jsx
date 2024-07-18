@@ -12,7 +12,12 @@ const Animation = () => {
 
   const handleSelectChange = (e) => {
     const selectedId = e.target.value;
-    const selectedItem = containerList.find((item) => item.id === selectedId);
+    console.log(containerList);
+    console.log(selectedId);
+    console.log(typeof selectedId);
+    const selectedItem = containerList.find(
+      (item) => String(item.ID) === selectedId
+    );
     setSelectedContainer(selectedItem);
   };
 
@@ -23,10 +28,10 @@ const Animation = () => {
           <h2 className="font-semibold text-[#0e2040] mb-4">
             {/* {selectedContainer.name} */}
           </h2>
-          {selectedContainer.itemList.map((item) => (
+          {selectedContainer.ItemList.map((item) => (
             <div
               key={
-                (item.id,
+                (item.ID,
                 {
                   /*item.name*/
                 })
@@ -34,14 +39,13 @@ const Animation = () => {
               className="border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4"
             >
               <h3>
-                {/* {item.name}:*/} {item.id}
+                {/* {item.name}:*/} {item.ID}
               </h3>
               <div>
-                Pos X: {item.pos_x} Pos Y: {item.pos_y} Pos Z: {item.pos_z}
+                Pos X: {item.PosX} Pos Y: {item.PosX} Pos Z: {item.PosZ}
               </div>
               <div>
-                Size X: {item.size_x} Size Y: {item.size_y} Size Z:{" "}
-                {item.size_z}
+                Size X: {item.SizeX} Size Y: {item.SizeY} Size Z: {item.SizeZ}
               </div>
             </div>
           ))}
@@ -59,12 +63,15 @@ const Animation = () => {
         );
         const result = response.data;
         setData(result);
+
         const containers = [];
-        containers.push(result[0]);
-        result[0].itemList.forEach((item) => {
-          if (item.type === "container") containers.push(item);
+        containers.push(result);
+
+        result.ItemList.forEach((item) => {
+          if (item.Type === "Container") containers.push(item);
         });
-        setSelectedContainer(result[0]);
+        console.log(containers);
+        setSelectedContainer(result);
         setContainerList(containers);
       } catch (err) {
         console.log(err);
@@ -101,9 +108,9 @@ const Animation = () => {
                   className="border border-gray-300 rounded-md p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
                   {containerList.map((item) => (
-                    <option key={item.id} value={item.id}>
+                    <option key={item.ID} value={item.ID}>
                       {/* {item.name}: */}
-                      {item.id}
+                      {item.Type}: {item.ID}
                     </option>
                   ))}
                 </select>
