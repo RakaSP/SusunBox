@@ -1,0 +1,3 @@
+[submodule "obatexpress_vrp3d"]
+	path = obatexpress_vrp3d
+	url = https://github.com/FlaneTern/obatexpress_vrp3d.git

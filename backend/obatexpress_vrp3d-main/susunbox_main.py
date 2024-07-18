@@ -22,6 +22,7 @@ def run():
         print("Packing order ", i, " into cardboxes")
         order_list[i].pack_items_into_cardboard_boxes(cbox_type_list)
 
+    print(cbox_type_list)
     # problem = VRP3D(vehicle_list,
     #                 order_list,
     #                 depot_coord,

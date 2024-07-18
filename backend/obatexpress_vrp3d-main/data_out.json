@@ -1,1 +1,1 @@
-{"type": "VehicleContainer", "id": 1, "size_x": 30, "size_y": 30, "size_z": 30, "max_weight": "20", "itemList": []}
+{"type": "VehicleContainer", "id": 1, "size_x": 150, "size_y": 150, "size_z": 150, "max_weight": 30, "itemList": []}
