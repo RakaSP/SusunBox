@@ -1,0 +1,39 @@
+{
+    "box":{
+      "size_x": 30,
+      "size_y": 40,
+      "size_z": 50,
+      "max_weight": 100
+    },
+    "items":[
+        {
+            "size_x": 20,
+            "size_y": 20,
+            "size_z": 30,
+            "priority": 0,
+            "weight":5
+        },
+        {
+            "size_x": 20,
+            "size_y": 20,
+            "size_z": 30,
+            "priority": 0,
+            "weight":5
+        },
+        {
+            "size_x": 20,
+            "size_y": 40,
+            "size_z": 10,
+            "priority": 0,
+            "weight":5
+        },
+        {
+            "size_x": 10,
+            "size_y": 40,
+            "size_z": 50,
+            "priority": 1,
+            "weight":5
+        }
+    ]   
+}
+  
