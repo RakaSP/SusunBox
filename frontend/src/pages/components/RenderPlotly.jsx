@@ -386,8 +386,7 @@ const RenderPlotly = ({ selectedContainer }) => {
       "flex",
       "flex-row",
       "p-[10px]",
-      "mb-[20px]",
-      "shadow-lg"
+      "mb-[20px]"
     );
 
     const leftContainer = document.createElement("div");

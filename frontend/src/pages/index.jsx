@@ -3,14 +3,14 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { RotatingLines } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { fakedata } from "../constants/fakedata";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faXmark,
   faPlus,
-  faTrash,
   faCheck,
   faMinus,
+  faCaretUp,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "../assets/susunbox_logo.png";
 const Index = () => {
@@ -23,15 +23,16 @@ const Index = () => {
     "flex-1 flex items-center justify-center border-b-2";
   const headerStyle = "text-[20px] font-poppins font-semibold ";
   const itemContainerStyle =
-    "border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4";
+    "border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4 bg-white";
 
   const navigate = useNavigate();
   // Data States
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
   const [containersData, setContainersData] = useState([]);
-  const [vehicleData, setVehicleData] = useState([]);
+  const [vehicleData, setVehicleData] = useState({});
+
   const [ordersData, setOrdersData] = useState([]);
   const [newResource, setNewResource] = useState({
     ID: null,
@@ -43,20 +44,132 @@ const Index = () => {
   const [selectedResource, setSelectedResource] = useState("Container");
 
   // Label Animation State
-  const [inputIdFocused, setInputIdFocused] = useState(false);
-  const [inputNameFocused, setinputNameFocused] = useState(false);
-  const [inputPriorityFocused, setInputPriorityFocused] = useState(false);
-  const [inputSizeFocused, setInputSizeFocused] = useState({
-    SizeX: false,
-    SizeY: false,
-    SizeZ: false,
+  const [focusedInputs, setFocusedInputs] = useState({
+    inputId: false,
+    inputName: false,
+    inputPriority: false,
+    inputSize: {
+      SizeX: false,
+      SizeY: false,
+      SizeZ: false,
+    },
+    inputMW: false,
+    inputWeight: false,
   });
-  const [inputMWFocused, setInputMWFocused] = useState(false);
-  const [inputWeightFocused, setInputWeightFocused] = useState(false);
+
   const [lifoActive, setLifoActive] = useState(false);
 
-  // Handlers
 
+  // Storage
+
+  const isStorageExist = () => {
+    if (typeof Storage === undefined) {
+      alert("Your browser does not support storage");
+      return false;
+    }
+    return true;
+  };
+
+  const saveData = (parsedData) => {
+    if (isStorageExist) {
+      if(newResource.Type === 'Container'){
+        parsedData.push({
+          ...newResource,
+        });
+      }else if(newResource.Type === 'Order'){
+        if(newResource.Priority === undefined){
+          const highestPriority = ordersData.reduce((max, item) => item.Priority > max ? item.Priority : max, 0);
+          parsedData.push({
+            ...newResource,
+            Priority: highestPriority,
+            ItemList: []
+          })
+        }else{
+          parsedData.push({
+            ...newResource,
+            ItemList: []
+          })
+        }
+      }else{
+        parsedData.map((resource) => {
+          if(resource.ID === newResource.OrderID && resource.Type === 'Order'){
+            resource.ItemList.push(newResource);
+          }
+        })
+      }
+      sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(parsedData));
+    }
+  };
+
+  const saveVehicleData = () => {
+    if(isStorageExist) {
+      const parsed = JSON.stringify(vehicleData);
+      sessionStorage.setItem('VehicleData', parsed);
+    }
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) =>{
+      saveVehicleData();
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [vehicleData])
+
+  const loadDataFromStorage = () => {
+    const serializedResources = sessionStorage.getItem('SUSUNBOX_API');
+    let resources = JSON.parse(serializedResources);
+    const serializedVehicleData = sessionStorage.getItem('VehicleData');
+    
+    if(serializedVehicleData === null){
+      const defaultVehicleData = {
+        ID: '1',
+        Name: 'Truck',
+        Type: 'VehicleContainer',
+        SizeX: 50,
+        SizeY: 50,
+        SizeZ: 50,
+        MaxWeight: 15,
+      };
+      sessionStorage.setItem('VehicleData', JSON.stringify(defaultVehicleData));
+      setVehicleData(defaultVehicleData);
+    }else{
+      const parsedVehicleData = JSON.parse(serializedVehicleData);
+      setVehicleData(parsedVehicleData);
+    }
+
+    if(resources !== null){
+      setData(resources)
+      setContainersData(resources.filter((item) => item.Type === "Container"));
+      setOrdersData(resources.filter((item) => item.Type === "Order"));
+    }
+  }
+
+  // Reset Focus State Function
+  const resetResourcesStates = () => {
+    setFocusedInputs({
+      inputId: false,
+      inputName: false,
+      inputPriority: false,
+      inputSize: {
+        SizeX: false,
+        SizeY: false,
+        SizeZ: false,
+      },
+      inputMW: false,
+      inputWeight: false,
+    });
+    if(newResource.Type === 'Item'){
+      setNewResource({Type: 'Order'})
+    }else{
+      setNewResource({Type: newResource.Type});
+    }
+  };
+
+  // Handlers
   // Swap data on drag and drop event
   const handleDragEnd = async (result) => {
     if (result.destination !== null) {
@@ -79,7 +192,6 @@ const Index = () => {
       setOrdersData(updatedData);
       try {
         await axios.put("http://localhost:3001/DND", updatedData);
-        console.log("Data sorted and updated in backend");
       } catch (error) {
         console.error("Error updating data in backend:", error);
       }
@@ -97,14 +209,6 @@ const Index = () => {
     setShowForm(true);
   };
 
-  const closeFormClickHandler = () => {
-    setShowForm(false);
-    if (selectedResource === "Item") {
-      setSelectedResource("Order");
-      setNewResource({ ...newResource, Type: "Order" });
-    }
-  };
-
   const batchSetState = (resData) => {
     const getVehicleData = resData.filter(
       (item) => item.Type === "VehicleContainer"
@@ -118,73 +222,65 @@ const Index = () => {
     setLoading(false);
   };
 
-  // Axios API calls
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get("http://localhost:3001/resource");
-      console.log(response.data);
-      batchSetState(response.data);
-    } catch (error) {
-      console.error("Error fetching data", error);
-    }
-  };
-
   useEffect(() => {
-    if (data.length === 0) fetchData();
+    if (isStorageExist()) {
+      loadDataFromStorage();
+    }
   }, []);
 
-  const createResource = async () => {
-    if (showForm) {
-      setShowForm(false);
-    }
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      sessionStorage.setItem('VehicleData', JSON.stringify(vehicleData));
+    };
 
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [vehicleData]);
+
+  const closeFormClickHandler = () => {
+    if (selectedResource === "Item" || newResource.Type === "Item") {
+      setSelectedResource("Order");
+      setNewResource({ Type: "Order" });
+    }
+    setShowForm(false);
+    resetResourcesStates();
+  };
+
+  const createResource = async () => {
     try {
-      if (newResource.Type === "Item") {
-        await axios.post("http://localhost:3001/item", newResource);
-      } else if (newResource.Type === "Order") {
-        await axios.post("http://localhost:3001/order", newResource);
-      } else {
-        await axios.post("http://localhost:3001/container", newResource);
-      }
-      setNewResource({ ID: null, Type: newResource.Type });
-      fetchData();
-      console.log(data);
+      saveData(data);
+      saveVehicleData();
+      loadDataFromStorage();
+      setShowForm(false);
+      resetResourcesStates();
     } catch (error) {
       console.error("Error creating resource", error);
     }
   };
 
-  const deleteResource = async (ID, itemId) => {
-    try {
-      await axios.delete(`http://localhost:3001/orders/${ID}/items/${itemId}`);
-      fetchData();
-    } catch (error) {
-      console.error("Error deleting resource", error);
+  const deleteResource = async (ID, Type, ItemID = null) => {
+    let parsed = data;
+    if(Type === 'Item'){
+      parsed.forEach((item) => {
+        if(item.Type === 'Order' && item.ID === ID){
+          item.ItemList = item.ItemList.filter((item) => item.ID !== ItemID);
+        }
+      })
+    }else if (Type === 'Order' || Type === 'Container') {
+      parsed = parsed.filter(item => !(item.ID === ID && item.Type === Type));
     }
-  };
-
-  const deleteOrder = async (ID) => {
-    try {
-      await axios.delete(`http://localhost:3001/orders/${ID}`);
-      fetchData();
-    } catch (error) {
-      console.error("Error deleting order", error);
-    }
-  };
-
-  const deleteContainer = async (ID) => {
-    try {
-      await axios.delete(`http://localhost:3001/containers/${ID}`);
-      fetchData();
-    } catch (error) {
-      console.error("Error deleting order", error);
-    }
+    sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(parsed));
+    loadDataFromStorage();
   };
 
   const downloadJson = async () => {
     try {
-      await axios.post("http://localhost:3001/save-json", vehicleData);
+      const finalData = data;
+      finalData.unshift(vehicleData);
+      await axios.post("http://localhost:3001/save-json", finalData);
       navigate("/animation");
       alert("JSON file saved on server");
     } catch (error) {
@@ -197,7 +293,7 @@ const Index = () => {
     return (
       <React.Fragment>
         <input
-          Type="text"
+          type="text"
           className="block w-full p-2 mb-4 border border-gray-300 rounded bg-[#A7AABD]"
           value={Type}
           onChange={(e) =>
@@ -216,7 +312,7 @@ const Index = () => {
           <label
             htmlFor="ID"
             className={`${labelStyle} ${
-              inputIdFocused
+              focusedInputs.inputId
                 ? "text-[12px] left-[8px] top-[2px]"
                 : "left-2 top-3"
             }`}
@@ -229,11 +325,20 @@ const Index = () => {
             className={`${
               Type ? "block" : "hidden"
             } w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
-            Type="number"
+            type="number"
             value={newResource.ID}
-            onFocus={() => setInputIdFocused(true)}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputId: true,
+              }))
+            }
             onBlur={(e) =>
-              e.target.value.trim() === "" && setInputIdFocused(false)
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputId: false,
+              }))
             }
             onChange={(e) =>
               setNewResource({ ...newResource, ID: e.target.value })
@@ -242,21 +347,6 @@ const Index = () => {
         </div>
       </React.Fragment>
     );
-  };
-
-  const renderOrderOptions = (data) => {
-    return data
-      .filter((item) => item.Type === "Order")
-      .map((item) => (
-        <React.Fragment key={"Order-" + item.ID}>
-          <option value={item.ID}>
-            {item.ID}: {item.Name}
-          </option>
-          {item.ItemList &&
-            item.ItemList.length > 0 &&
-            renderOrderOptions(item.ItemList)}
-        </React.Fragment>
-      ));
   };
 
   const renderSelectOrder = (selectedType) => {
@@ -274,7 +364,7 @@ const Index = () => {
             Order ID
           </label>
           <input
-            Type="text"
+            type="text"
             className="block w-full px-3 pt-3 pb-1 border border-gray-300 rounded bg-[#A7AABD]"
             disabled
             value={newResource.OrderID}
@@ -300,7 +390,7 @@ const Index = () => {
           <label
             htmlFor="Name"
             className={`${labelStyle} ${
-              inputNameFocused
+              focusedInputs.inputName
                 ? "text-[12px] left-[8px] top-[2px]"
                 : "left-2 top-3"
             }`}
@@ -310,10 +400,19 @@ const Index = () => {
           </label>
           <input
             className={` w-full px-3 h-[48px] pt-3 pb-1 mb-4 border border-gray-300 rounded`}
-            Type="text"
-            onFocus={() => setinputNameFocused(true)}
+            type="text"
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputName: true,
+              }))
+            }
             onBlur={(e) =>
-              e.target.value.trim() === "" && setinputNameFocused(false)
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputName: false,
+              }))
             }
             value={newResource.Name}
             onChange={(e) =>
@@ -333,7 +432,7 @@ const Index = () => {
             <label
               htmlFor="Priority"
               className={`${labelStyle} ${
-                inputPriorityFocused
+                focusedInputs.inputPriority
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -343,11 +442,20 @@ const Index = () => {
             </label>
             <input
               className={`w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
-              Type="number"
+              type="number"
               value={newResource.Priority}
-              onFocus={() => setInputPriorityFocused(true)}
+              onFocus={() =>
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputPriority: true,
+                }))
+              }
               onBlur={(e) =>
-                e.target.value.trim() === "" && setInputPriorityFocused(false)
+                e.target.value.trim() === "" &&
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputPriority: false,
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, Priority: e.target.value })
@@ -367,7 +475,7 @@ const Index = () => {
             <label
               htmlFor="SizeX"
               className={`${labelStyle} ${
-                inputSizeFocused.SizeX || newResource.SizeX
+                focusedInputs.inputSize.SizeX || newResource.SizeX
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -378,16 +486,28 @@ const Index = () => {
             <input
               id="SizeX"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.SizeX ? "border-blue-500" : ""
+                focusedInputs.inputSize.SizeX ? "border-blue-500" : ""
               }`}
-              Type="number"
+              type="number"
               value={newResource.SizeX}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, SizeX: true })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeX: true,
+                  },
+                }))
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, SizeX: false })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeX: false,
+                  },
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, SizeX: e.target.value })
@@ -398,7 +518,7 @@ const Index = () => {
             <label
               htmlFor="SizeY"
               className={`${labelStyle} ${
-                inputSizeFocused.SizeY
+                focusedInputs.inputSize.SizeY
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -409,16 +529,28 @@ const Index = () => {
             <input
               id="SizeY"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.SizeY ? "border-blue-500" : ""
+                focusedInputs.inputSize.SizeY ? "border-blue-500" : ""
               }`}
-              Type="number"
+              type="number"
               value={newResource.SizeY}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, SizeY: true })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeY: true,
+                  },
+                }))
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, SizeY: false })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeY: false,
+                  },
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, SizeY: e.target.value })
@@ -429,7 +561,7 @@ const Index = () => {
             <label
               htmlFor="SizeZ"
               className={`${labelStyle} ${
-                inputSizeFocused.SizeZ
+                focusedInputs.inputSize.SizeZ
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -440,16 +572,28 @@ const Index = () => {
             <input
               id="SizeZ"
               className={`${sizeFormStyle} ${
-                inputSizeFocused.SizeZ ? "border-blue-500" : ""
+                focusedInputs.inputSize.SizeZ ? "border-blue-500" : ""
               } text-base`}
-              Type="number"
+              type="number"
               value={newResource.SizeZ}
               onFocus={() =>
-                setInputSizeFocused({ ...inputSizeFocused, SizeZ: true })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeZ: true,
+                  },
+                }))
               }
               onBlur={(e) =>
                 e.target.value.trim() === "" &&
-                setInputSizeFocused({ ...inputSizeFocused, SizeZ: false })
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputSize: {
+                    ...prevState.inputSize,
+                    SizeZ: false,
+                  },
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, SizeZ: e.target.value })
@@ -470,7 +614,7 @@ const Index = () => {
             <label
               htmlFor="MaxWeight"
               className={`${labelStyle} ${
-                inputMWFocused
+                focusedInputs.inputMW
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -480,11 +624,20 @@ const Index = () => {
             </label>
             <input
               className="w-full h-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base  text-[16px]"
-              Type="number"
+              type="number"
               value={newResource.MaxWeight}
-              onFocus={() => setInputMWFocused(true)}
+              onFocus={() =>
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputMW: true,
+                }))
+              }
               onBlur={(e) =>
-                e.target.value.trim() === "" && setInputMWFocused(false)
+                e.target.value.trim() === "" &&
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputMW: false,
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, MaxWeight: e.target.value })
@@ -504,7 +657,7 @@ const Index = () => {
             <label
               htmlFor="Weight"
               className={`${labelStyle} ${
-                inputWeightFocused
+                focusedInputs.inputWeight
                   ? "text-[12px] left-[8px] top-[2px]"
                   : "left-2 top-3"
               }`}
@@ -513,11 +666,20 @@ const Index = () => {
             </label>
             <input
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              Type="number"
+              type="number"
               value={newResource.Weight}
-              onFocus={() => setInputWeightFocused(true)}
+              onFocus={() =>
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputWeight: true,
+                }))
+              }
               onBlur={(e) =>
-                e.target.value.trim === "" && setInputWeightFocused(false)
+                e.target.value.trim() === "" &&
+                setFocusedInputs((prevState) => ({
+                  ...prevState,
+                  inputWeight: false,
+                }))
               }
               onChange={(e) =>
                 setNewResource({ ...newResource, Weight: e.target.value })
@@ -530,16 +692,16 @@ const Index = () => {
   };
 
   const renderResources = () => {
-    const activeColor = "#6F6F70";
-    const inactiveColor = "#0E2040";
+    const activeColor = "#0E2040";
+    const inactiveColor = "#6F6F70";
     return (
       <React.Fragment>
         <div className="w-[480px] border-2 border-[#6F6F70] rounded-lg mt-4 bg-white">
           <div className="w-full flex flex-row h-[64px]">
             <div
-              className={`${headerContainerStyle} border-[${
+              className={`${headerContainerStyle} !border-[${
                 selectedResource === "Container" ? activeColor : inactiveColor
-              }]`}
+              }] relative cursor-pointer`}
               onClick={() => resourceHeaderClickHandler("Container")}
             >
               <p
@@ -549,11 +711,17 @@ const Index = () => {
               >
                 Containers
               </p>
+              <FontAwesomeIcon
+                icon={faCaretUp}
+                className={`${
+                  selectedResource === "Container" ? "block" : "hidden"
+                } absolute -bottom-[8px] text-xl text-[#0E2040]`}
+              />
             </div>
             <div
-              className={`${headerContainerStyle} border-[${
+              className={`${headerContainerStyle} !border-[${
                 selectedResource === "Order" ? activeColor : inactiveColor
-              }]`}
+              }] relative cursor-pointer`}
               onClick={() => resourceHeaderClickHandler("Order")}
             >
               <p
@@ -563,6 +731,12 @@ const Index = () => {
               >
                 Orders
               </p>
+              <FontAwesomeIcon
+                icon={faCaretUp}
+                className={`${
+                  selectedResource === "Order" ? "block" : "hidden"
+                } absolute -bottom-[8px] text-xl text-[#0E2040]`}
+              />
             </div>
           </div>
           <hr className="w-full" />
@@ -570,7 +744,9 @@ const Index = () => {
           <div className="w-full p-[20px]">
             <div
               className="border-dashed border-2 mb-4 border-[#067C89] flex items-center justify-center rounded-md text-[22px] text-[#067C89] cursor-pointer hover:bg-[#067C89] hover:text-[#fff]"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                setShowForm(!showForm);
+              }}
             >
               +
             </div>
@@ -604,7 +780,7 @@ const Index = () => {
                             </div>
                             <div
                               className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                              onClick={() => deleteContainer(container.ID)}
+                              onClick={() => deleteResource(container.ID, 'Container')}
                             >
                               <FontAwesomeIcon
                                 className="h-[42%] w-[42%]"
@@ -632,15 +808,23 @@ const Index = () => {
                               className={`${itemContainerStyle}`}
                             >
                               <div className="flex flex-row justify-between mb-4 items-center text-[#0e2040] font-semibold">
-                                <div className="">
-                                  Order#{order.ID}{" "}
-                                  <span
-                                    className={`${
-                                      !lifoActive && "hidden"
-                                    } opacity-[0.72] text-[12px]`}
+                                <div className="flex flex-col">
+                                  <div className="">
+                                    Order#{order.ID}{" "}
+                                    <span
+                                      className={`${
+                                        !lifoActive && "hidden"
+                                      } opacity-[0.72] text-[12px]`}
+                                    >
+                                      Priority: {order.Priority}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className={`text-sm text-[#0e2040] opacity-[0.72] space-x-2 flex items-center`}
                                   >
-                                    Priority: {order.Priority}
-                                  </span>
+                                    <FontAwesomeIcon icon={faUser} />
+                                    <span>{order.Name}</span>
+                                  </div>
                                 </div>
                                 <div className="flex flex-row gap-2">
                                   <div
@@ -656,7 +840,7 @@ const Index = () => {
                                   </div>
                                   <div
                                     className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                                    onClick={() => deleteOrder(order.ID)}
+                                    onClick={() => deleteResource(order.ID, 'Order')}
                                   >
                                     <FontAwesomeIcon
                                       className="h-[42%] w-[42%]"
@@ -695,7 +879,7 @@ const Index = () => {
                                   <div
                                     className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
                                     onClick={() =>
-                                      deleteResource(order.ID, item.ID)
+                                      deleteResource(order.ID, 'Item', item.ID)
                                     }
                                   >
                                     <FontAwesomeIcon
@@ -721,7 +905,6 @@ const Index = () => {
   };
 
   const renderForm = () => {
-    console.log(selectedResource);
     return (
       <React.Fragment>
         <div className="w-full h-full fixed bg-black bg-opacity-40 flex justify-center items-center text-[#0E2040] z-10">
@@ -743,7 +926,10 @@ const Index = () => {
               {renderInputWeight(newResource.Type)}
               <button
                 className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-200"
-                onClick={createResource}
+                onClick={(e) => {
+                  createResource();
+                  e.preventDefault();
+                }}
               >
                 Create
               </button>
@@ -755,7 +941,6 @@ const Index = () => {
   };
 
   const renderVehicleForm = () => {
-    console.log(vehicleData);
     return (
       <div className="border-2 border-[#6F6F70] rounded bg-white px-4 py-2 mt-4">
         <h2 className="text-[#0e2040] font-semibold mb-2">Vehicle</h2>
@@ -768,7 +953,7 @@ const Index = () => {
               Vehicle Name
             </label>
             <input
-              Type="text"
+              type="text"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={vehicleData.Name}
               onChange={(e) =>
@@ -784,7 +969,7 @@ const Index = () => {
               Size X
             </label>
             <input
-              Type="number"
+              type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={vehicleData.SizeX}
               onChange={(e) =>
@@ -803,7 +988,7 @@ const Index = () => {
               Size Y
             </label>
             <input
-              Type="number"
+              type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={vehicleData.SizeY}
               onChange={(e) =>
@@ -819,7 +1004,7 @@ const Index = () => {
               Size Z
             </label>
             <input
-              Type="number"
+              type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={vehicleData.SizeZ}
               onChange={(e) =>
@@ -835,7 +1020,7 @@ const Index = () => {
               Max Weight
             </label>
             <input
-              Type="number"
+              type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={vehicleData.MaxWeight}
               onChange={(e) =>
@@ -884,10 +1069,10 @@ const Index = () => {
                 />
               </button>
               <button
-                className="py-2 w-[240px] bg-[#82B2CA] font-poppins text-white font-semibold border-2 border-[#5A9BB5] mt-4 rounded-md hover:bg-[#0059A6] hover:border-[#003F6D]"
+                className="py-2 w-[240px] bg-[#82B2CA] font-poppins text-white font-semibold border-2 border-[#5A9BB5] mt-4 rounded-md shadow-lg hover:bg-[#0059A6] hover:border-[#003F6D] hover:shadow-xl transition-all duration-300"
                 onClick={downloadJson}
               >
-                Download JSON
+                Process Data
               </button>
               {renderVehicleForm()}
             </div>
