@@ -54,6 +54,7 @@ def item_to_dict(item):
     item_dict = {}
     item_dict["Type"] = "Item"
     item_dict["ID"] = item.id
+    item_dict["Name"] = item.name
     item_dict["SizeX"] = item.size[0]
     item_dict["SizeY"] = item.size[1]
     item_dict["SizeZ"] = item.size[2]

@@ -3,35 +3,23 @@ import { RotatingLines } from "react-loader-spinner";
 import axios from "axios";
 import logo from "../assets/susunbox_logo.png";
 import RenderPlotly from "./components/RenderPlotly";
+import "../styles/Plotly.scss";
 
 const Animation = () => {
   const [loading, setLoading] = useState(true);
-  const [containerList, setContainerList] = useState([]);
   const [selectedContainer, setSelectedContainer] = useState();
-
-  const handleSelectChange = (e) => {
-    const selectedId = e.target.value;
-    console.log(containerList);
-    console.log(selectedId);
-    console.log(typeof selectedId);
-    const selectedItem = containerList.find(
-      (item) => String(item.ID) === selectedId
-    );
-    setSelectedContainer(selectedItem);
-  };
 
   const renderResources = () => {
     return (
       <React.Fragment>
         <div className="border-2 border-[#6F6F70] rounded-lg mt-4 bg-white p-[20px]">
-          <h2 className="font-semibold text-[#0e2040] mb-4"></h2>
           {selectedContainer.ItemList.map((item) => (
             <div
               key={(item.ID, {})}
               className="border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4"
             >
               <h3>
-                {item.name}: {item.ID}
+                {item.Name}: {item.ID}
               </h3>
               <div>
                 Pos X: {item.PosX} Pos Y: {item.PosX} Pos Z: {item.PosZ}
@@ -61,10 +49,7 @@ const Animation = () => {
         result.ItemList.forEach((item) => {
           if (item.Type === "Container") containers.push(item);
         });
-        console.log(containers);
-        console.log(result);
         setSelectedContainer(result);
-        setContainerList(containers);
       } catch (err) {
         console.log(err);
       } finally {
@@ -98,20 +83,7 @@ const Animation = () => {
 
           <div className="flex flex-row mt-8">
             <div className="w-[320px] mr-4">
-              <div className="flex flex-col">
-                <select
-                  onChange={handleSelectChange}
-                  className="border border-gray-300 rounded-md p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  {containerList.map((item) => (
-                    <option key={item.ID} value={item.ID}>
-                      {/* {item.name}: */}
-                      {item.Type}: {item.ID}
-                    </option>
-                  ))}
-                </select>
-                {renderResources()}
-              </div>
+              <div className="flex flex-col">{renderResources()}</div>
             </div>
             <div className="ml-4">
               <RenderPlotly selectedContainer={selectedContainer} />

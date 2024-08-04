@@ -4,11 +4,7 @@ import { RotatingLines } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faXmark,
-  faCheck,
-  faMinus,
-} from "@fortawesome/free-solid-svg-icons";
+import { faXmark, faCheck, faMinus } from "@fortawesome/free-solid-svg-icons";
 import logo from "../assets/susunbox_logo.png";
 const Index = () => {
   // Styles
@@ -52,7 +48,6 @@ const Index = () => {
 
   const [lifoActive, setLifoActive] = useState(false);
 
-
   // Storage
 
   const isStorageExist = () => {
@@ -66,60 +61,63 @@ const Index = () => {
   const saveData = () => {
     if (isStorageExist) {
       const parsedData = data;
-      if(!newItem.Priority){
+      if (!newItem.Priority) {
         const highestPriority = parsedData.reduce((max, obj) => {
-            return obj.Priority > max ? obj.Priority : max;
+          return obj.Priority > max ? obj.Priority : max;
         }, 0);
         newItem.Priority = Number(highestPriority, 10) + 1;
       }
       parsedData.push(newItem);
-      sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(data));
+      sessionStorage.setItem("SUSUNBOX_API", JSON.stringify(data));
     }
   };
 
   const saveVehicleData = () => {
-    if(isStorageExist) {
+    if (isStorageExist) {
       const parsed = JSON.stringify(containerData);
-      sessionStorage.setItem('VehicleData', parsed);
+      sessionStorage.setItem("ContainerData", parsed);
     }
-  }
+  };
 
   useEffect(() => {
-    const handleBeforeUnload = (e) =>{
+    const handleBeforeUnload = (e) => {
       saveVehicleData();
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [containerData])
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [containerData]);
 
   const loadDataFromStorage = () => {
-    const serializedResources = sessionStorage.getItem('SUSUNBOX_API');
+    const serializedResources = sessionStorage.getItem("SUSUNBOX_API");
     let resources = JSON.parse(serializedResources);
-    const serializedContainerData = sessionStorage.getItem('VehicleData');
-    
-    if(serializedContainerData === null){
+    const serializedContainerData = sessionStorage.getItem("ContainerData");
+
+    if (serializedContainerData === null) {
       const defaultContainerData = {
-        ID: '1',
+        ID: "1",
         SizeX: 50,
         SizeY: 50,
         SizeZ: 50,
         MaxWeight: 15,
         ItemList: [],
       };
-      sessionStorage.setItem('VehicleData', JSON.stringify(defaultContainerData));
+      sessionStorage.setItem(
+        "ContainerData",
+        JSON.stringify(defaultContainerData)
+      );
       setContainerData(defaultContainerData);
-    }else{
+    } else {
       const parsedContainerData = JSON.parse(serializedContainerData);
       setContainerData(parsedContainerData);
     }
 
-    if(resources !== null){
-      setData(resources)
+    if (resources !== null) {
+      setData(resources);
     }
-  }
+  };
 
   // Reset Focus State Function
   const resetResourcesStates = () => {
@@ -135,7 +133,7 @@ const Index = () => {
       inputMW: false,
       inputWeight: false,
     });
-    setNewItem({})
+    setNewItem({});
   };
 
   // Handlers
@@ -174,14 +172,14 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      sessionStorage.setItem('VehicleData', JSON.stringify(containerData));
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem("ContainerData", JSON.stringify(containerData));
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [containerData]);
 
@@ -203,8 +201,8 @@ const Index = () => {
   };
 
   const deleteResource = async (ID) => {
-    const updatedData = data.filter((item) => !(item.ID === ID))
-    sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(updatedData));
+    const updatedData = data.filter((item) => !(item.ID === ID));
+    sessionStorage.setItem("SUSUNBOX_API", JSON.stringify(updatedData));
     loadDataFromStorage();
   };
 
@@ -212,7 +210,7 @@ const Index = () => {
     try {
       const finalData = containerData;
       finalData.ItemList = data;
-      console.log(finalData);
+      sessionStorage.setItem("ContainerData", JSON.stringify(containerData));
       await axios.post("http://localhost:3001/save-json", finalData);
       navigate("/animation");
       alert("JSON file saved on server");
@@ -256,9 +254,7 @@ const Index = () => {
                 inputId: false,
               }))
             }
-            onChange={(e) =>
-              setNewItem({ ...newItem, ID: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, ID: e.target.value })}
           />
         </div>
       </React.Fragment>
@@ -268,9 +264,7 @@ const Index = () => {
   const renderSelectOrder = () => {
     return (
       <React.Fragment>
-        <div
-          className={`relative h-[48px] mb-4`}
-        >
+        <div className={`relative h-[48px] mb-4`}>
           <label
             htmlFor="item"
             className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
@@ -294,9 +288,7 @@ const Index = () => {
   const renderInputName = () => {
     return (
       <React.Fragment>
-        <div
-          className={`relative h-[48px] mb-4`}
-        >
+        <div className={`relative h-[48px] mb-4`}>
           <label
             htmlFor="Name"
             className={`${labelStyle} ${
@@ -325,9 +317,7 @@ const Index = () => {
               }))
             }
             value={newItem.Name}
-            onChange={(e) =>
-              setNewItem({ ...newItem, Name: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, Name: e.target.value })}
           />
         </div>
       </React.Fragment>
@@ -416,9 +406,7 @@ const Index = () => {
                 },
               }))
             }
-            onChange={(e) =>
-              setNewItem({ ...newItem, SizeX: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, SizeX: e.target.value })}
           />
         </div>
         <div className="relative">
@@ -459,9 +447,7 @@ const Index = () => {
                 },
               }))
             }
-            onChange={(e) =>
-              setNewItem({ ...newItem, SizeY: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, SizeY: e.target.value })}
           />
         </div>
         <div className="relative">
@@ -502,9 +488,7 @@ const Index = () => {
                 },
               }))
             }
-            onChange={(e) =>
-              setNewItem({ ...newItem, SizeZ: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, SizeZ: e.target.value })}
           />
         </div>
       </div>
@@ -583,9 +567,7 @@ const Index = () => {
                 inputWeight: false,
               }))
             }
-            onChange={(e) =>
-              setNewItem({ ...newItem, Weight: e.target.value })
-            }
+            onChange={(e) => setNewItem({ ...newItem, Weight: e.target.value })}
           />
         </div>
       </React.Fragment>
@@ -597,15 +579,10 @@ const Index = () => {
       <React.Fragment>
         <div className="w-[480px] border-2 border-dimBlack rounded-lg mt-4 bg-white">
           <div className="w-full flex flex-row h-[64px]">
-            
             <div
               className={`${headerContainerStyle} border-black relative cursor-pointer`}
             >
-              <p
-                className={`${headerStyle} text-black`}
-              >
-                Items
-              </p>
+              <p className={`${headerStyle} text-black`}>Items</p>
             </div>
           </div>
 
@@ -626,54 +603,54 @@ const Index = () => {
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
                     {data.map((item, index) => (
-                        <Draggable
-                          key={item.ID}
-                          draggableId={"Order-" + item.ID}
-                          index={index}
-                          isDragDisabled={lifoActive === false}
-                        >
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`${itemContainerStyle}`}
-                            >
-                              <div className="flex flex-row justify-between items-center text-[#0e2040] font-semibold">
-                                <div className="flex flex-col">
-                                  <div className="">
-                                    {item.Name}#{item.ID}
-                                    <span
-                                      className={`${
-                                        !lifoActive && "hidden"
-                                      } text-dimBlack text-[12px] ml-2`}
-                                    >
-                                      Priority: {item.Priority}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex flex-row gap-2">
-                                  <div
-                                    className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                                    onClick={() => deleteResource(item.ID)}
+                      <Draggable
+                        key={item.ID}
+                        draggableId={"Order-" + item.ID}
+                        index={index}
+                        isDragDisabled={lifoActive === false}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`${itemContainerStyle}`}
+                          >
+                            <div className="flex flex-row justify-between items-center text-[#0e2040] font-semibold">
+                              <div className="flex flex-col">
+                                <div className="">
+                                  {item.Name}#{item.ID}
+                                  <span
+                                    className={`${
+                                      !lifoActive && "hidden"
+                                    } text-dimBlack text-[12px] ml-2`}
                                   >
-                                    <FontAwesomeIcon
-                                      className="h-[42%] w-[42%]"
-                                      icon={faMinus}
-                                    />
-                                  </div>
+                                    Priority: {item.Priority}
+                                  </span>
                                 </div>
                               </div>
-                              <div>
-                                <div className="">
-                                  Size: {item.SizeX}, {item.SizeY}, {item.SizeZ}
+                              <div className="flex flex-row gap-2">
+                                <div
+                                  className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
+                                  onClick={() => deleteResource(item.ID)}
+                                >
+                                  <FontAwesomeIcon
+                                    className="h-[42%] w-[42%]"
+                                    icon={faMinus}
+                                  />
                                 </div>
-                                <data>Weight: {item.Weight}</data>
                               </div>
                             </div>
-                          )}
-                        </Draggable>
-                      ))}
+                            <div>
+                              <div className="">
+                                Size: {item.SizeX}, {item.SizeY}, {item.SizeZ}
+                              </div>
+                              <data>Weight: {item.Weight}</data>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
                     {provided.placeholder}
                   </div>
                 )}
@@ -787,7 +764,10 @@ const Index = () => {
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={containerData.MaxWeight}
               onChange={(e) =>
-                setContainerData({ ...containerData, MaxWeight: e.target.value })
+                setContainerData({
+                  ...containerData,
+                  MaxWeight: e.target.value,
+                })
               }
             />
           </div>

@@ -31,10 +31,10 @@ app.post("/save-json", (req, res) => {
   const mappedData = {
     box: {
       id: jsonData.ID,
-      size_x: jsonData.SizeX,
-      size_y: jsonData.SizeY,
-      size_z: jsonData.SizeZ,
-      max_weight: jsonData.MaxWeight,
+      size_x: Number(jsonData.SizeX),
+      size_y: Number(jsonData.SizeY),
+      size_z: Number(jsonData.SizeZ),
+      max_weight: Number(jsonData.MaxWeight),
     },
     items: jsonData.ItemList.map(ItemListMap),
   };
