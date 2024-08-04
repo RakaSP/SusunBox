@@ -5,7 +5,6 @@ import logo from "../assets/susunbox_logo.png";
 import RenderPlotly from "./components/RenderPlotly";
 
 const Animation = () => {
-  const [data, setData] = useState([]); // Start with null to handle loading
   const [loading, setLoading] = useState(true);
   const [containerList, setContainerList] = useState([]);
   const [selectedContainer, setSelectedContainer] = useState();
@@ -25,21 +24,14 @@ const Animation = () => {
     return (
       <React.Fragment>
         <div className="border-2 border-[#6F6F70] rounded-lg mt-4 bg-white p-[20px]">
-          <h2 className="font-semibold text-[#0e2040] mb-4">
-            {/* {selectedContainer.name} */}
-          </h2>
+          <h2 className="font-semibold text-[#0e2040] mb-4"></h2>
           {selectedContainer.ItemList.map((item) => (
             <div
-              key={
-                (item.ID,
-                {
-                  /*item.name*/
-                })
-              }
+              key={(item.ID, {})}
               className="border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4"
             >
               <h3>
-                {/* {item.name}:*/} {item.ID}
+                {item.name}: {item.ID}
               </h3>
               <div>
                 Pos X: {item.PosX} Pos Y: {item.PosX} Pos Z: {item.PosZ}
@@ -62,7 +54,6 @@ const Animation = () => {
           "http://localhost:3001/processedResource"
         );
         const result = response.data;
-        setData(result);
 
         const containers = [];
         containers.push(result);
@@ -71,6 +62,7 @@ const Animation = () => {
           if (item.Type === "Container") containers.push(item);
         });
         console.log(containers);
+        console.log(result);
         setSelectedContainer(result);
         setContainerList(containers);
       } catch (err) {
@@ -82,6 +74,10 @@ const Animation = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log("Selected Container:", selectedContainer);
+  }, [selectedContainer]);
 
   return (
     <div className="w-full min-h-[100vh] flex flex-col items-center font-poppins bg-[#f4fbff]">

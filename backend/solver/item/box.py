@@ -6,6 +6,7 @@ from uuid import uuid1
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 from item.item import Item
 from item.utils import compute_supported_area
@@ -42,7 +43,7 @@ class Box(Item):
         d_item3.position = np.asanyarray([-1,0,0], dtype=np.int64)
         self.dummy_items = [d_item1, d_item2, d_item3]
         self.reset()
-
+    
     # reset to initial state
     # or to a given value (say a state of a solution)
     def reset(self,

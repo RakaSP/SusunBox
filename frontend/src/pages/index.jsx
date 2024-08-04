@@ -6,42 +6,35 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faXmark,
-  faPlus,
   faCheck,
   faMinus,
-  faCaretUp,
-  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "../assets/susunbox_logo.png";
 const Index = () => {
   // Styles
   const labelStyle =
-    "absolute text-[#0E2040] opacity-[0.72] font-semibold transition-all duration-200 z-[0]";
+    "absolute text-dimBlack font-semibold transition-all duration-200 z-[0]";
   const sizeFormStyle =
     "max-w-[140px] pt-3 pb-1 px-3 border border-gray-300 rounded text-[16px] h-full ";
   const headerContainerStyle =
     "flex-1 flex items-center justify-center border-b-2";
   const headerStyle = "text-[20px] font-poppins font-semibold ";
   const itemContainerStyle =
-    "border-2 border-[#6F6F70] rounded-md w-full p-4 mb-4 bg-white";
+    "border-2 border-dimBlack rounded-md w-full p-4 mb-4 bg-white";
 
   const navigate = useNavigate();
   // Data States
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
-  const [containersData, setContainersData] = useState([]);
-  const [vehicleData, setVehicleData] = useState({});
+  const [containerData, setContainerData] = useState({});
 
-  const [ordersData, setOrdersData] = useState([]);
-  const [newResource, setNewResource] = useState({
+  const [newItem, setNewItem] = useState({
     ID: null,
-    Type: "Container",
   });
 
   // Form State
   const [showForm, setShowForm] = useState(false);
-  const [selectedResource, setSelectedResource] = useState("Container");
 
   // Label Animation State
   const [focusedInputs, setFocusedInputs] = useState({
@@ -70,40 +63,23 @@ const Index = () => {
     return true;
   };
 
-  const saveData = (parsedData) => {
+  const saveData = () => {
     if (isStorageExist) {
-      if(newResource.Type === 'Container'){
-        parsedData.push({
-          ...newResource,
-        });
-      }else if(newResource.Type === 'Order'){
-        if(newResource.Priority === undefined){
-          const highestPriority = ordersData.reduce((max, item) => item.Priority > max ? item.Priority : max, 0);
-          parsedData.push({
-            ...newResource,
-            Priority: highestPriority,
-            ItemList: []
-          })
-        }else{
-          parsedData.push({
-            ...newResource,
-            ItemList: []
-          })
-        }
-      }else{
-        parsedData.map((resource) => {
-          if(resource.ID === newResource.OrderID && resource.Type === 'Order'){
-            resource.ItemList.push(newResource);
-          }
-        })
+      const parsedData = data;
+      if(!newItem.Priority){
+        const highestPriority = parsedData.reduce((max, obj) => {
+            return obj.Priority > max ? obj.Priority : max;
+        }, 0);
+        newItem.Priority = Number(highestPriority, 10) + 1;
       }
-      sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(parsedData));
+      parsedData.push(newItem);
+      sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(data));
     }
   };
 
   const saveVehicleData = () => {
     if(isStorageExist) {
-      const parsed = JSON.stringify(vehicleData);
+      const parsed = JSON.stringify(containerData);
       sessionStorage.setItem('VehicleData', parsed);
     }
   }
@@ -117,34 +93,31 @@ const Index = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [vehicleData])
+  }, [containerData])
 
   const loadDataFromStorage = () => {
     const serializedResources = sessionStorage.getItem('SUSUNBOX_API');
     let resources = JSON.parse(serializedResources);
-    const serializedVehicleData = sessionStorage.getItem('VehicleData');
+    const serializedContainerData = sessionStorage.getItem('VehicleData');
     
-    if(serializedVehicleData === null){
-      const defaultVehicleData = {
+    if(serializedContainerData === null){
+      const defaultContainerData = {
         ID: '1',
-        Name: 'Truck',
-        Type: 'VehicleContainer',
         SizeX: 50,
         SizeY: 50,
         SizeZ: 50,
         MaxWeight: 15,
+        ItemList: [],
       };
-      sessionStorage.setItem('VehicleData', JSON.stringify(defaultVehicleData));
-      setVehicleData(defaultVehicleData);
+      sessionStorage.setItem('VehicleData', JSON.stringify(defaultContainerData));
+      setContainerData(defaultContainerData);
     }else{
-      const parsedVehicleData = JSON.parse(serializedVehicleData);
-      setVehicleData(parsedVehicleData);
+      const parsedContainerData = JSON.parse(serializedContainerData);
+      setContainerData(parsedContainerData);
     }
 
     if(resources !== null){
       setData(resources)
-      setContainersData(resources.filter((item) => item.Type === "Container"));
-      setOrdersData(resources.filter((item) => item.Type === "Order"));
     }
   }
 
@@ -162,11 +135,7 @@ const Index = () => {
       inputMW: false,
       inputWeight: false,
     });
-    if(newResource.Type === 'Item'){
-      setNewResource({Type: 'Order'})
-    }else{
-      setNewResource({Type: newResource.Type});
-    }
+    setNewItem({})
   };
 
   // Handlers
@@ -177,7 +146,7 @@ const Index = () => {
         return;
       }
 
-      const updatedData = Array.from(ordersData);
+      const updatedData = Array.from(data);
       const [reorderedItem] = updatedData.splice(result.source.index, 1);
       let destinationIndex = result.destination.index;
       if (destinationIndex > result.source.index) destinationIndex--;
@@ -189,37 +158,13 @@ const Index = () => {
 
       updatedData.splice(result.destination.index, 0, reorderedItem);
 
-      setOrdersData(updatedData);
+      setData(updatedData);
       try {
         await axios.put("http://localhost:3001/DND", updatedData);
       } catch (error) {
         console.error("Error updating data in backend:", error);
       }
     }
-  };
-
-  const resourceHeaderClickHandler = (Type) => {
-    setSelectedResource(Type);
-    setNewResource({ ...newResource, Type: Type });
-  };
-
-  const addItemClickHandler = (selectedOrderId) => {
-    setSelectedResource("Item");
-    setNewResource({ ...newResource, Type: "Item", OrderID: selectedOrderId });
-    setShowForm(true);
-  };
-
-  const batchSetState = (resData) => {
-    const getVehicleData = resData.filter(
-      (item) => item.Type === "VehicleContainer"
-    );
-    setData(resData);
-    if (vehicleData.length === 0) {
-      setVehicleData(getVehicleData[0]);
-    }
-    setContainersData(resData.filter((item) => item.Type === "Container"));
-    setOrdersData(resData.filter((item) => item.Type === "Order"));
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -230,7 +175,7 @@ const Index = () => {
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
-      sessionStorage.setItem('VehicleData', JSON.stringify(vehicleData));
+      sessionStorage.setItem('VehicleData', JSON.stringify(containerData));
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -238,20 +183,16 @@ const Index = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [vehicleData]);
+  }, [containerData]);
 
   const closeFormClickHandler = () => {
-    if (selectedResource === "Item" || newResource.Type === "Item") {
-      setSelectedResource("Order");
-      setNewResource({ Type: "Order" });
-    }
-    setShowForm(false);
     resetResourcesStates();
+    setShowForm(false);
   };
 
   const createResource = async () => {
     try {
-      saveData(data);
+      saveData();
       saveVehicleData();
       loadDataFromStorage();
       setShowForm(false);
@@ -261,25 +202,17 @@ const Index = () => {
     }
   };
 
-  const deleteResource = async (ID, Type, ItemID = null) => {
-    let parsed = data;
-    if(Type === 'Item'){
-      parsed.forEach((item) => {
-        if(item.Type === 'Order' && item.ID === ID){
-          item.ItemList = item.ItemList.filter((item) => item.ID !== ItemID);
-        }
-      })
-    }else if (Type === 'Order' || Type === 'Container') {
-      parsed = parsed.filter(item => !(item.ID === ID && item.Type === Type));
-    }
-    sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(parsed));
+  const deleteResource = async (ID) => {
+    const updatedData = data.filter((item) => !(item.ID === ID))
+    sessionStorage.setItem('SUSUNBOX_API', JSON.stringify(updatedData));
     loadDataFromStorage();
   };
 
-  const downloadJson = async () => {
+  const processData = async () => {
     try {
-      const finalData = data;
-      finalData.unshift(vehicleData);
+      const finalData = containerData;
+      finalData.ItemList = data;
+      console.log(finalData);
       await axios.post("http://localhost:3001/save-json", finalData);
       navigate("/animation");
       alert("JSON file saved on server");
@@ -289,23 +222,8 @@ const Index = () => {
   };
 
   // Render Functions
-  const renderSelectType = (Type) => {
-    return (
-      <React.Fragment>
-        <input
-          type="text"
-          className="block w-full p-2 mb-4 border border-gray-300 rounded bg-[#A7AABD]"
-          value={Type}
-          onChange={(e) =>
-            setNewResource({ ...newResource, Type: e.target.value })
-          }
-          disabled
-        />
-      </React.Fragment>
-    );
-  };
 
-  const renderInputId = (Type) => {
+  const renderInputId = () => {
     return (
       <React.Fragment>
         <div className="relative h-[48px] mb-4">
@@ -318,15 +236,13 @@ const Index = () => {
             }`}
             style={{ pointerEvents: "none" }}
           >
-            {selectedResource === "Item" ? "Item ID" : "ID"}
+            ID
           </label>
           <input
             id="ID"
-            className={`${
-              Type ? "block" : "hidden"
-            } w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
+            className={`block w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
             type="number"
-            value={newResource.ID}
+            value={newItem.ID}
             onFocus={() =>
               setFocusedInputs((prevState) => ({
                 ...prevState,
@@ -341,7 +257,7 @@ const Index = () => {
               }))
             }
             onChange={(e) =>
-              setNewResource({ ...newResource, ID: e.target.value })
+              setNewItem({ ...newItem, ID: e.target.value })
             }
           />
         </div>
@@ -349,16 +265,14 @@ const Index = () => {
     );
   };
 
-  const renderSelectOrder = (selectedType) => {
+  const renderSelectOrder = () => {
     return (
       <React.Fragment>
         <div
-          className={`${
-            selectedType === "Item" ? "mb-4" : "hidden"
-          } relative h-[48px] mb-4`}
+          className={`relative h-[48px] mb-4`}
         >
           <label
-            htmlFor="order"
+            htmlFor="item"
             className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
           >
             Order ID
@@ -367,9 +281,9 @@ const Index = () => {
             type="text"
             className="block w-full px-3 pt-3 pb-1 border border-gray-300 rounded bg-[#A7AABD]"
             disabled
-            value={newResource.OrderID}
+            value={newItem.OrderID}
             onChange={(e) =>
-              setNewResource({ ...newResource, OrderID: e.target.value })
+              setNewItem({ ...newItem, OrderID: e.target.value })
             }
           />
         </div>
@@ -377,15 +291,11 @@ const Index = () => {
     );
   };
 
-  const renderInputName = (selectedType) => {
+  const renderInputName = () => {
     return (
       <React.Fragment>
         <div
-          className={`${
-            selectedType === "Item" || selectedType === "Order"
-              ? "block"
-              : "hidden"
-          } relative h-[48px] mb-4`}
+          className={`relative h-[48px] mb-4`}
         >
           <label
             htmlFor="Name"
@@ -396,7 +306,7 @@ const Index = () => {
             }`}
             style={{ pointerEvents: "none" }}
           >
-            {selectedType === "Item" ? "Item Name" : "Customer Name"}
+            Item Name
           </label>
           <input
             className={` w-full px-3 h-[48px] pt-3 pb-1 mb-4 border border-gray-300 rounded`}
@@ -414,9 +324,9 @@ const Index = () => {
                 inputName: false,
               }))
             }
-            value={newResource.Name}
+            value={newItem.Name}
             onChange={(e) =>
-              setNewResource({ ...newResource, Name: e.target.value })
+              setNewItem({ ...newItem, Name: e.target.value })
             }
           />
         </div>
@@ -424,321 +334,281 @@ const Index = () => {
     );
   };
 
-  const renderInputPriority = (selectedType) => {
-    if (selectedType === "Order") {
-      return (
-        <React.Fragment>
-          <div className="relative h-[48px] mb-4">
-            <label
-              htmlFor="Priority"
-              className={`${labelStyle} ${
-                focusedInputs.inputPriority
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-              style={{ pointerEvents: "none" }}
-            >
-              Priority
-            </label>
-            <input
-              className={`w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
-              type="number"
-              value={newResource.Priority}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputPriority: true,
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputPriority: false,
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, Priority: e.target.value })
-              }
-            />
-          </div>
-        </React.Fragment>
-      );
-    }
-  };
-
-  const renderInputSize = (selectedType) => {
-    if (selectedType === "Item" || selectedType === "Container") {
-      return (
-        <div className="flex flex-row justify-between h-[48px] mb-4">
-          <div className="relative h-full">
-            <label
-              htmlFor="SizeX"
-              className={`${labelStyle} ${
-                focusedInputs.inputSize.SizeX || newResource.SizeX
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-              style={{ pointerEvents: "none" }}
-            >
-              Size X
-            </label>
-            <input
-              id="SizeX"
-              className={`${sizeFormStyle} ${
-                focusedInputs.inputSize.SizeX ? "border-blue-500" : ""
-              }`}
-              type="number"
-              value={newResource.SizeX}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeX: true,
-                  },
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeX: false,
-                  },
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, SizeX: e.target.value })
-              }
-            />
-          </div>
-          <div className="relative">
-            <label
-              htmlFor="SizeY"
-              className={`${labelStyle} ${
-                focusedInputs.inputSize.SizeY
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-              style={{ pointerEvents: "none" }}
-            >
-              Size Y
-            </label>
-            <input
-              id="SizeY"
-              className={`${sizeFormStyle} ${
-                focusedInputs.inputSize.SizeY ? "border-blue-500" : ""
-              }`}
-              type="number"
-              value={newResource.SizeY}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeY: true,
-                  },
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeY: false,
-                  },
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, SizeY: e.target.value })
-              }
-            />
-          </div>
-          <div className="relative">
-            <label
-              htmlFor="SizeZ"
-              className={`${labelStyle} ${
-                focusedInputs.inputSize.SizeZ
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-              style={{ pointerEvents: "none" }}
-            >
-              Size Z
-            </label>
-            <input
-              id="SizeZ"
-              className={`${sizeFormStyle} ${
-                focusedInputs.inputSize.SizeZ ? "border-blue-500" : ""
-              } text-base`}
-              type="number"
-              value={newResource.SizeZ}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeZ: true,
-                  },
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputSize: {
-                    ...prevState.inputSize,
-                    SizeZ: false,
-                  },
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, SizeZ: e.target.value })
-              }
-            />
-          </div>
+  const renderInputPriority = () => {
+    return (
+      <React.Fragment>
+        <div className="relative h-[48px] mb-4">
+          <label
+            htmlFor="Priority"
+            className={`${labelStyle} ${
+              focusedInputs.inputPriority
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+            style={{ pointerEvents: "none" }}
+          >
+            Priority
+          </label>
+          <input
+            className={`w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
+            type="number"
+            value={newItem.Priority}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputPriority: true,
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputPriority: false,
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, Priority: e.target.value })
+            }
+          />
         </div>
-      );
-    }
-    return null;
+      </React.Fragment>
+    );
   };
 
-  const renderInputMaxWeight = (selectedType) => {
-    if (selectedType === "Container") {
-      return (
-        <React.Fragment>
-          <div className="relative h-[48px] mb-4">
-            <label
-              htmlFor="MaxWeight"
-              className={`${labelStyle} ${
-                focusedInputs.inputMW
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-              style={{ pointerEvents: "none" }}
-            >
-              Max Weight (Kg)
-            </label>
-            <input
-              className="w-full h-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base  text-[16px]"
-              type="number"
-              value={newResource.MaxWeight}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputMW: true,
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputMW: false,
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, MaxWeight: e.target.value })
-              }
-            />
-          </div>
-        </React.Fragment>
-      );
-    }
+  const renderInputSize = () => {
+    return (
+      <div className="flex flex-row justify-between h-[48px] mb-4">
+        <div className="relative h-full">
+          <label
+            htmlFor="SizeX"
+            className={`${labelStyle} ${
+              focusedInputs.inputSize.SizeX || newItem.SizeX
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+            style={{ pointerEvents: "none" }}
+          >
+            Size X
+          </label>
+          <input
+            id="SizeX"
+            className={`${sizeFormStyle} ${
+              focusedInputs.inputSize.SizeX ? "border-blue-500" : ""
+            }`}
+            type="number"
+            value={newItem.SizeX}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeX: true,
+                },
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeX: false,
+                },
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, SizeX: e.target.value })
+            }
+          />
+        </div>
+        <div className="relative">
+          <label
+            htmlFor="SizeY"
+            className={`${labelStyle} ${
+              focusedInputs.inputSize.SizeY
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+            style={{ pointerEvents: "none" }}
+          >
+            Size Y
+          </label>
+          <input
+            id="SizeY"
+            className={`${sizeFormStyle} ${
+              focusedInputs.inputSize.SizeY ? "border-blue-500" : ""
+            }`}
+            type="number"
+            value={newItem.SizeY}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeY: true,
+                },
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeY: false,
+                },
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, SizeY: e.target.value })
+            }
+          />
+        </div>
+        <div className="relative">
+          <label
+            htmlFor="SizeZ"
+            className={`${labelStyle} ${
+              focusedInputs.inputSize.SizeZ
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+            style={{ pointerEvents: "none" }}
+          >
+            Size Z
+          </label>
+          <input
+            id="SizeZ"
+            className={`${sizeFormStyle} ${
+              focusedInputs.inputSize.SizeZ ? "border-blue-500" : ""
+            } text-base`}
+            type="number"
+            value={newItem.SizeZ}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeZ: true,
+                },
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputSize: {
+                  ...prevState.inputSize,
+                  SizeZ: false,
+                },
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, SizeZ: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    );
   };
 
-  const renderInputWeight = (selectedType) => {
-    if (selectedType === "Item") {
-      return (
-        <React.Fragment>
-          <div className="h-[48px] relative mb-4">
-            <label
-              htmlFor="Weight"
-              className={`${labelStyle} ${
-                focusedInputs.inputWeight
-                  ? "text-[12px] left-[8px] top-[2px]"
-                  : "left-2 top-3"
-              }`}
-            >
-              Weight (Kg)
-            </label>
-            <input
-              className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              type="number"
-              value={newResource.Weight}
-              onFocus={() =>
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputWeight: true,
-                }))
-              }
-              onBlur={(e) =>
-                e.target.value.trim() === "" &&
-                setFocusedInputs((prevState) => ({
-                  ...prevState,
-                  inputWeight: false,
-                }))
-              }
-              onChange={(e) =>
-                setNewResource({ ...newResource, Weight: e.target.value })
-              }
-            />
-          </div>
-        </React.Fragment>
-      );
-    }
+  const renderInputMaxWeight = () => {
+    return (
+      <React.Fragment>
+        <div className="relative h-[48px] mb-4">
+          <label
+            htmlFor="MaxWeight"
+            className={`${labelStyle} ${
+              focusedInputs.inputMW
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+            style={{ pointerEvents: "none" }}
+          >
+            Max Weight (Kg)
+          </label>
+          <input
+            className="w-full h-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base  text-[16px]"
+            type="number"
+            value={newItem.MaxWeight}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputMW: true,
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputMW: false,
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, MaxWeight: e.target.value })
+            }
+          />
+        </div>
+      </React.Fragment>
+    );
+  };
+
+  const renderInputWeight = () => {
+    return (
+      <React.Fragment>
+        <div className="h-[48px] relative mb-4">
+          <label
+            htmlFor="Weight"
+            className={`${labelStyle} ${
+              focusedInputs.inputWeight
+                ? "text-[12px] left-[8px] top-[2px]"
+                : "left-2 top-3"
+            }`}
+          >
+            Weight (Kg)
+          </label>
+          <input
+            className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
+            type="number"
+            value={newItem.Weight}
+            onFocus={() =>
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputWeight: true,
+              }))
+            }
+            onBlur={(e) =>
+              e.target.value.trim() === "" &&
+              setFocusedInputs((prevState) => ({
+                ...prevState,
+                inputWeight: false,
+              }))
+            }
+            onChange={(e) =>
+              setNewItem({ ...newItem, Weight: e.target.value })
+            }
+          />
+        </div>
+      </React.Fragment>
+    );
   };
 
   const renderResources = () => {
-    const activeColor = "#0E2040";
-    const inactiveColor = "#6F6F70";
     return (
       <React.Fragment>
-        <div className="w-[480px] border-2 border-[#6F6F70] rounded-lg mt-4 bg-white">
+        <div className="w-[480px] border-2 border-dimBlack rounded-lg mt-4 bg-white">
           <div className="w-full flex flex-row h-[64px]">
+            
             <div
-              className={`${headerContainerStyle} !border-[${
-                selectedResource === "Container" ? activeColor : inactiveColor
-              }] relative cursor-pointer`}
-              onClick={() => resourceHeaderClickHandler("Container")}
+              className={`${headerContainerStyle} border-black relative cursor-pointer`}
             >
               <p
-                className={`${headerStyle} text-[${
-                  selectedResource === "Container" ? activeColor : inactiveColor
-                }]`}
+                className={`${headerStyle} text-black`}
               >
-                Containers
+                Items
               </p>
-              <FontAwesomeIcon
-                icon={faCaretUp}
-                className={`${
-                  selectedResource === "Container" ? "block" : "hidden"
-                } absolute -bottom-[8px] text-xl text-[#0E2040]`}
-              />
-            </div>
-            <div
-              className={`${headerContainerStyle} !border-[${
-                selectedResource === "Order" ? activeColor : inactiveColor
-              }] relative cursor-pointer`}
-              onClick={() => resourceHeaderClickHandler("Order")}
-            >
-              <p
-                className={`${headerStyle} text-[${
-                  selectedResource === "Order" ? activeColor : inactiveColor
-                }]`}
-              >
-                Orders
-              </p>
-              <FontAwesomeIcon
-                icon={faCaretUp}
-                className={`${
-                  selectedResource === "Order" ? "block" : "hidden"
-                } absolute -bottom-[8px] text-xl text-[#0E2040]`}
-              />
             </div>
           </div>
+
           <hr className="w-full" />
 
           <div className="w-full p-[20px]">
@@ -755,48 +625,10 @@ const Index = () => {
               <Droppable droppableId="resources">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {selectedResource === "Container" &&
-                      containersData.map((container) => {
-                        if (!container.Weight) container.Weight = 0;
-                        return (
-                          <div
-                            key={"Con-" + container.ID}
-                            className={`${itemContainerStyle} relative`}
-                          >
-                            <div className={`text-[#0e2040] font-semibold `}>
-                              Container #{container.ID}
-                            </div>
-                            <div
-                              className={`text-sm text-[#0e2040] opacity-[0.72]`}
-                            >
-                              Size: {container.SizeX}, {container.SizeY},{" "}
-                              {container.SizeZ}
-                            </div>
-                            <div className="flex flex-row">
-                              <p className="flex-1 text-sm text-[#0e2040] opacity-[0.72]">
-                                Max Weight: {container.MaxWeight}
-                                <span>Kg</span>
-                              </p>
-                            </div>
-                            <div
-                              className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                              onClick={() => deleteResource(container.ID, 'Container')}
-                            >
-                              <FontAwesomeIcon
-                                className="h-[42%] w-[42%]"
-                                icon={faMinus}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                    {(selectedResource === "Order" ||
-                      selectedResource === "Item") &&
-                      ordersData.map((order, index) => (
+                    {data.map((item, index) => (
                         <Draggable
-                          key={order.ID}
-                          draggableId={"Order-" + order.ID}
+                          key={item.ID}
+                          draggableId={"Order-" + item.ID}
                           index={index}
                           isDragDisabled={lifoActive === false}
                         >
@@ -807,40 +639,23 @@ const Index = () => {
                               {...provided.dragHandleProps}
                               className={`${itemContainerStyle}`}
                             >
-                              <div className="flex flex-row justify-between mb-4 items-center text-[#0e2040] font-semibold">
+                              <div className="flex flex-row justify-between items-center text-[#0e2040] font-semibold">
                                 <div className="flex flex-col">
                                   <div className="">
-                                    Order#{order.ID}{" "}
+                                    {item.Name}#{item.ID}
                                     <span
                                       className={`${
                                         !lifoActive && "hidden"
-                                      } opacity-[0.72] text-[12px]`}
+                                      } text-dimBlack text-[12px] ml-2`}
                                     >
-                                      Priority: {order.Priority}
+                                      Priority: {item.Priority}
                                     </span>
-                                  </div>
-                                  <div
-                                    className={`text-sm text-[#0e2040] opacity-[0.72] space-x-2 flex items-center`}
-                                  >
-                                    <FontAwesomeIcon icon={faUser} />
-                                    <span>{order.Name}</span>
                                   </div>
                                 </div>
                                 <div className="flex flex-row gap-2">
                                   <div
-                                    className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#378EFF] text-white cursor-pointer"
-                                    onClick={() =>
-                                      addItemClickHandler(order.ID)
-                                    }
-                                  >
-                                    <FontAwesomeIcon
-                                      className="h-[42%] w-[42%]"
-                                      icon={faPlus}
-                                    />
-                                  </div>
-                                  <div
                                     className="w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                                    onClick={() => deleteResource(order.ID, 'Order')}
+                                    onClick={() => deleteResource(item.ID)}
                                   >
                                     <FontAwesomeIcon
                                       className="h-[42%] w-[42%]"
@@ -849,46 +664,12 @@ const Index = () => {
                                   </div>
                                 </div>
                               </div>
-
-                              {order.ItemList.map((item) => (
-                                <div
-                                  key={"Item-" + item.ID}
-                                  className={`${itemContainerStyle} relative`}
-                                >
-                                  <div
-                                    className={`text-[#0e2040] font-semibold`}
-                                  >
-                                    Item#{item.ID}
-                                  </div>
-                                  <div
-                                    className={`text-sm text-[#0e2040] opacity-[0.72]`}
-                                  >
-                                    Item Name: {item.Name}
-                                  </div>
-                                  <div
-                                    className={`text-sm text-[#0e2040] opacity-[0.72]`}
-                                  >
-                                    Size: {item.SizeX}, {item.SizeY},{" "}
-                                    {item.SizeZ}
-                                  </div>
-                                  <div
-                                    className={`text-sm text-[#0e2040] opacity-[0.72]`}
-                                  >
-                                    Weight: {item.Weight}
-                                  </div>
-                                  <div
-                                    className="absolute bottom-4 right-4 w-[32px] h-[32px] rounded-md flex items-center justify-center font-[24px] bg-[#FF5159] text-[#fff] cursor-pointer"
-                                    onClick={() =>
-                                      deleteResource(order.ID, 'Item', item.ID)
-                                    }
-                                  >
-                                    <FontAwesomeIcon
-                                      className="h-[42%] w-[42%]"
-                                      icon={faMinus}
-                                    />
-                                  </div>
+                              <div>
+                                <div className="">
+                                  Size: {item.SizeX}, {item.SizeY}, {item.SizeZ}
                                 </div>
-                              ))}
+                                <data>Weight: {item.Weight}</data>
+                              </div>
                             </div>
                           )}
                         </Draggable>
@@ -907,23 +688,21 @@ const Index = () => {
   const renderForm = () => {
     return (
       <React.Fragment>
-        <div className="w-full h-full fixed bg-black bg-opacity-40 flex justify-center items-center text-[#0E2040] z-10">
+        <div className="w-full h-full fixed bg-[#000] bg-opacity-40 flex justify-center items-center text-black z-10">
           <div className="border-2 border-blue-200 p-4 rounded-lg shadow-md bg-white w-[480px] relative">
             <h2 className="text-lg font-semibold mb-4">Create Resource</h2>
             <FontAwesomeIcon
-              className="w-[24px] h-[24px] text-[#0E2040] absolute right-4 top-4 hover:text-[#558EF8]"
+              className="w-[24px] h-[24px] text-black absolute right-4 top-4 hover:text-[#558EF8]"
               icon={faXmark}
               onClick={() => closeFormClickHandler()}
             />
             <form>
-              {renderSelectType(selectedResource)}
-              {renderSelectOrder(newResource.Type)}
-              {renderInputId(newResource.Type)}
-              {renderInputName(newResource.Type)}
-              {lifoActive && renderInputPriority(newResource.Type)}
-              {renderInputSize(newResource.Type)}
-              {renderInputMaxWeight(newResource.Type)}
-              {renderInputWeight(newResource.Type)}
+              {renderSelectOrder()}
+              {renderInputId()}
+              {renderInputName()}
+              {lifoActive && renderInputPriority()}
+              {renderInputSize()}
+              {renderInputWeight()}
               <button
                 className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-200"
                 onClick={(e) => {
@@ -940,27 +719,11 @@ const Index = () => {
     );
   };
 
-  const renderVehicleForm = () => {
+  const renderContainerForm = () => {
     return (
-      <div className="border-2 border-[#6F6F70] rounded bg-white px-4 py-2 mt-4">
-        <h2 className="text-[#0e2040] font-semibold mb-2">Vehicle</h2>
+      <div className="border-2 border-dimBlack rounded bg-white px-4 py-2 mt-4">
+        <h2 className="text-[#0e2040] font-semibold my-2">Container</h2>
         <form action="">
-          <div className="relative h-[48px] mb-4">
-            <label
-              htmlFor=""
-              className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
-            >
-              Vehicle Name
-            </label>
-            <input
-              type="text"
-              className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.Name}
-              onChange={(e) =>
-                setVehicleData({ ...vehicleData, Name: e.target.value })
-              }
-            />
-          </div>
           <div className="relative h-[48px] mb-4">
             <label
               htmlFor=""
@@ -971,9 +734,9 @@ const Index = () => {
             <input
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.SizeX}
+              value={containerData.SizeX}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, SizeX: e.target.value })
+                setContainerData({ ...containerData, SizeX: e.target.value })
               }
             />
           </div>
@@ -982,7 +745,7 @@ const Index = () => {
               htmlFor=""
               className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, SizeY: e.target.value })
+                setContainerData({ ...containerData, SizeY: e.target.value })
               }
             >
               Size Y
@@ -990,9 +753,9 @@ const Index = () => {
             <input
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.SizeY}
+              value={containerData.SizeY}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, SizeY: e.target.value })
+                setContainerData({ ...containerData, SizeY: e.target.value })
               }
             />
           </div>
@@ -1006,9 +769,9 @@ const Index = () => {
             <input
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.SizeZ}
+              value={containerData.SizeZ}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, SizeZ: e.target.value })
+                setContainerData({ ...containerData, SizeZ: e.target.value })
               }
             />
           </div>
@@ -1022,9 +785,9 @@ const Index = () => {
             <input
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
-              value={vehicleData.MaxWeight}
+              value={containerData.MaxWeight}
               onChange={(e) =>
-                setVehicleData({ ...vehicleData, MaxWeight: e.target.value })
+                setContainerData({ ...containerData, MaxWeight: e.target.value })
               }
             />
           </div>
@@ -1070,11 +833,11 @@ const Index = () => {
               </button>
               <button
                 className="py-2 w-[240px] bg-[#82B2CA] font-poppins text-white font-semibold border-2 border-[#5A9BB5] mt-4 rounded-md shadow-lg hover:bg-[#0059A6] hover:border-[#003F6D] hover:shadow-xl transition-all duration-300"
-                onClick={downloadJson}
+                onClick={processData}
               >
                 Process Data
               </button>
-              {renderVehicleForm()}
+              {renderContainerForm()}
             </div>
           </div>
           {showForm && renderForm()}

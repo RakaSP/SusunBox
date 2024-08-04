@@ -5,6 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
+const ItemListMap = require("./DataMapper/ItemListMap");
+
 const app = express();
 const port = 3001;
 
@@ -14,65 +16,72 @@ app.use(cors());
 let processedData = [];
 
 app.get("/processedResource", (req, res) => {
-  console.log(processedData);
   res.json(processedData);
 });
 
 app.post("/save-json", (req, res) => {
   const jsonData = req.body;
-  const filePath = path.join(
-    __dirname,
-    "obatexpress_vrp3d-main",
-    "data (5).json"
-  );
+  jsonData.ItemList.map((item) => {
+    item.SizeX = Number(item.SizeX);
+    item.SizeY = Number(item.SizeY);
+    item.SizeZ = Number(item.SizeZ);
+    item.Weight = Number(item.Weight);
+  });
+
+  const mappedData = {
+    box: {
+      id: jsonData.ID,
+      size_x: jsonData.SizeX,
+      size_y: jsonData.SizeY,
+      size_z: jsonData.SizeZ,
+      max_weight: jsonData.MaxWeight,
+    },
+    items: jsonData.ItemList.map(ItemListMap),
+  };
+
+  const filePath = path.join(__dirname, "solver/instances", "example.json");
   const outputFilePath = path.join(
     __dirname,
-    "obatexpress_vrp3d-main",
+    "solver/results",
     "data_out.json"
   );
 
-  fs.writeFile(filePath, JSON.stringify(jsonData, null, 2), (err) => {
+  fs.writeFile(filePath, JSON.stringify(mappedData, null, 2), (err) => {
     if (err) {
       console.error("Error saving JSON file", err);
       return res.status(500).json({ error: "Failed to save JSON file" });
     }
 
-    exec(
-      "cd obatexpress_vrp3d-main && python susunbox_main.py",
-      (execErr, stdout, stderr) => {
-        if (execErr) {
-          console.error("Error executing susunbox_main.py", stderr);
+    exec("cd solver && python main.py", (execErr, stdout, stderr) => {
+      if (execErr) {
+        console.error("Error executing susunbox_main.py", stderr);
+        return res
+          .status(500)
+          .json({ error: "Failed to execute susunbox_main.py" });
+      }
+
+      fs.readFile(outputFilePath, "utf8", (err, outData) => {
+        if (err) {
+          console.error("Error reading processed JSON file", err);
           return res
             .status(500)
-            .json({ error: "Failed to execute susunbox_main.py" });
+            .json({ error: "Failed to read processed JSON file" });
         }
 
-        fs.readFile(outputFilePath, "utf8", (err, outData) => {
-          if (err) {
-            console.error("Error reading processed JSON file", err);
-            return res
-              .status(500)
-              .json({ error: "Failed to read processed JSON file" });
-          }
-
-          try {
-            const processedJsonData = JSON.parse(outData);
-            console.log("out data: ", outData);
-            console.log("processed json data: ", processedJsonData);
-            processedData = processedJsonData;
-            console.log("processed data:", processedData);
-            res.json({
-              message: "JSON file saved and data updated successfully",
-            });
-          } catch (parseErr) {
-            console.error("Error parsing processed JSON data", parseErr);
-            res
-              .status(500)
-              .json({ error: "Failed to parse processed JSON data" });
-          }
-        });
-      }
-    );
+        try {
+          const processedJsonData = JSON.parse(outData);
+          processedData = processedJsonData;
+          res.json({
+            message: "JSON file saved and data updated successfully",
+          });
+        } catch (parseErr) {
+          console.error("Error parsing processed JSON data", parseErr);
+          res
+            .status(500)
+            .json({ error: "Failed to parse processed JSON data" });
+        }
+      });
+    });
   });
 });
 

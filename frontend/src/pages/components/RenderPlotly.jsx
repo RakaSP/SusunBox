@@ -1,14 +1,7 @@
 /* eslint-disable no-undef */
-/* eslint-disable no-redeclare */
-
-// Note: fetch data container, Item based on pathId
-import React, { useEffect, useRef, useState } from "react";
-import styles from "../../styles/style";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useRef } from "react";
 const RenderPlotly = ({ selectedContainer }) => {
-  console.log(selectedContainer);
   const containerElem = useRef(null);
-  const { id } = useParams();
 
   useEffect(() => {
     const containerSize = [
@@ -20,7 +13,6 @@ const RenderPlotly = ({ selectedContainer }) => {
     ];
     const packData = [];
     selectedContainer.ItemList.map((item) => packData.push(item));
-    // function to import plotly
     const importPlotly = async () => {
       return new Promise((resolve, reject) => {
         const script = document.createElement("script");

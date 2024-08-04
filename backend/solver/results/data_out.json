@@ -1,0 +1,1 @@
+{"Type": "VehicleContainer", "ID": 0, "SizeX": 50, "SizeY": 50, "SizeZ": 50, "MaxWeight": 15, "ItemList": [{"Type": "Item", "ID": 0, "SizeX": 3, "SizeY": 5, "SizeZ": 7, "Weight": 2, "PosX": 0, "PosY": 0, "PosZ": 0}, {"Type": "Item", "ID": 1, "SizeX": 8, "SizeY": 9, "SizeZ": 3, "Weight": 10, "PosX": 0, "PosY": 5, "PosZ": 0}]}
