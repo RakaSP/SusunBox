@@ -24,7 +24,6 @@ const Index = () => {
   const [data, setData] = useState([]);
 
   const [containerData, setContainerData] = useState({});
-
   const [newItem, setNewItem] = useState({
     ID: null,
   });
@@ -674,7 +673,6 @@ const Index = () => {
               onClick={() => closeFormClickHandler()}
             />
             <form>
-              {renderSelectOrder()}
               {renderInputId()}
               {renderInputName()}
               {lifoActive && renderInputPriority()}
@@ -790,7 +788,6 @@ const Index = () => {
               SusunBox
             </span>
           </div>
-
           <h1 className="text-[26px] font-bold mt-10">Resource Manager</h1>
           <div className="w-[480px] relative">
             {renderResources()}

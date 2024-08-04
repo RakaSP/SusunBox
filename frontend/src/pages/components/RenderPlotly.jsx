@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faAngleLeft,
+  faAnglesLeft,
+  faAngleRight,
+  faAnglesRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 const RenderPlotly = ({ selectedContainer }) => {
   const [plotData, setPlotData] = useState([]);
@@ -16,7 +23,6 @@ const RenderPlotly = ({ selectedContainer }) => {
     ];
 
     const packData = selectedContainer.ItemList.slice(0, itemCount);
-
     const boxPos = [0, 0, 0];
     const boxSize = [
       containerSize[0].SizeX,
@@ -164,10 +170,16 @@ const RenderPlotly = ({ selectedContainer }) => {
       </div>
       <div className="flex justify-center mt-4">
         <button
+          onClick={() => setItemCount(1)}
+          className="mx-2 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          <FontAwesomeIcon icon={faAnglesLeft} />
+        </button>
+        <button
           onClick={() => setItemCount((prev) => Math.max(1, prev - 1))}
           className="mx-2 px-4 py-2 bg-blue-500 text-white rounded"
         >
-          -
+          <FontAwesomeIcon icon={faAngleLeft} />
         </button>
         <button
           onClick={() =>
@@ -177,7 +189,13 @@ const RenderPlotly = ({ selectedContainer }) => {
           }
           className="mx-2 px-4 py-2 bg-blue-500 text-white rounded"
         >
-          +
+          <FontAwesomeIcon icon={faAngleRight} />
+        </button>
+        <button
+          onClick={() => setItemCount(selectedContainer.ItemList.length)}
+          className="mx-2 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          <FontAwesomeIcon icon={faAnglesRight} />
         </button>
       </div>
     </>

@@ -3,6 +3,7 @@ import { RotatingLines } from "react-loader-spinner";
 import axios from "axios";
 import logo from "../assets/susunbox_logo.png";
 import RenderPlotly from "./components/RenderPlotly";
+
 import "../styles/Plotly.scss";
 
 const Animation = () => {
