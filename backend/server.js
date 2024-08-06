@@ -52,36 +52,39 @@ app.post("/save-json", (req, res) => {
       return res.status(500).json({ error: "Failed to save JSON file" });
     }
 
-    exec("cd solver && python main.py", (execErr, stdout, stderr) => {
-      if (execErr) {
-        console.error("Error executing susunbox_main.py", stderr);
-        return res
-          .status(500)
-          .json({ error: "Failed to execute susunbox_main.py" });
-      }
-
-      fs.readFile(outputFilePath, "utf8", (err, outData) => {
-        if (err) {
-          console.error("Error reading processed JSON file", err);
+    exec(
+      "cd solver && python main.py --filename=../instances/example.json",
+      (execErr, stdout, stderr) => {
+        if (execErr) {
+          console.error("Error executing susunbox_main.py", stderr);
           return res
             .status(500)
-            .json({ error: "Failed to read processed JSON file" });
+            .json({ error: "Failed to execute susunbox_main.py" });
         }
 
-        try {
-          const processedJsonData = JSON.parse(outData);
-          processedData = processedJsonData;
-          res.json({
-            message: "JSON file saved and data updated successfully",
-          });
-        } catch (parseErr) {
-          console.error("Error parsing processed JSON data", parseErr);
-          res
-            .status(500)
-            .json({ error: "Failed to parse processed JSON data" });
-        }
-      });
-    });
+        fs.readFile(outputFilePath, "utf8", (err, outData) => {
+          if (err) {
+            console.error("Error reading processed JSON file", err);
+            return res
+              .status(500)
+              .json({ error: "Failed to read processed JSON file" });
+          }
+
+          try {
+            const processedJsonData = JSON.parse(outData);
+            processedData = processedJsonData;
+            res.json({
+              message: "JSON file saved and data updated successfully",
+            });
+          } catch (parseErr) {
+            console.error("Error parsing processed JSON data", parseErr);
+            res
+              .status(500)
+              .json({ error: "Failed to parse processed JSON data" });
+          }
+        });
+      }
+    );
   });
 });
 
