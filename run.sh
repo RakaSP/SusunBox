@@ -1,4 +1,6 @@
 #!/bin/bash
+source ./backend/solver/susunbox_venv/bin/activate
+
 cd backend
 node server.js &
 background_pid1=$!
