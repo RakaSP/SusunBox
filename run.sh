@@ -1,7 +1,17 @@
 #!/bin/bash
 cd backend
 node server.js &
-cd ../frontend
-npm start &
+background_pid1=$!
 
-echo "Setup done!"
+cd ../frontend
+pwd
+npm run start
+
+cleanup() {
+    echo "Cleaning up..."
+    kill $background_pid1
+}
+
+trap cleanup EXIT
+
+echo "Exiting..."
