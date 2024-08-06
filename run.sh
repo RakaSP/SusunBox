@@ -6,7 +6,6 @@ node server.js &
 background_pid1=$!
 
 cd ../frontend
-pwd
 npm run start
 
 cleanup() {
