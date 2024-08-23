@@ -87,7 +87,7 @@ const Animation = () => {
               <div className="flex flex-col">{renderResources()}</div>
             </div>
             <div className="ml-4">
-              <RenderPlotly selectedContainer={selectedContainer} />
+              <RenderPlotly container={selectedContainer} />
             </div>
           </div>
         </>

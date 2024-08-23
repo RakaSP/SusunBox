@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { RotatingLines } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,7 +19,7 @@ const Index = () => {
 
   const navigate = useNavigate();
   // Data States
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
   const [containerData, setContainerData] = useState({});
@@ -49,38 +48,26 @@ const Index = () => {
 
   // Storage
 
-  const isStorageExist = () => {
-    if (typeof Storage === undefined) {
-      alert("Your browser does not support storage");
-      return false;
-    }
-    return true;
-  };
-
   const saveData = () => {
-    if (isStorageExist) {
-      const parsedData = data;
-      if (!newItem.Priority) {
-        const highestPriority = parsedData.reduce((max, obj) => {
-          return obj.Priority > max ? obj.Priority : max;
-        }, 0);
-        newItem.Priority = Number(highestPriority, 10) + 1;
-      }
-      parsedData.push(newItem);
-      sessionStorage.setItem("SUSUNBOX_API", JSON.stringify(data));
+    const parsedData = data;
+    if (!newItem.Priority) {
+      const highestPriority = parsedData.reduce((max, obj) => {
+        return obj.Priority > max ? obj.Priority : max;
+      }, 0);
+      newItem.Priority = Number(highestPriority, 10) + 1;
     }
+    parsedData.push(newItem);
+    sessionStorage.setItem("SUSUNBOX_API", JSON.stringify(data));
   };
 
-  const saveVehicleData = () => {
-    if (isStorageExist) {
-      const parsed = JSON.stringify(containerData);
-      sessionStorage.setItem("ContainerData", parsed);
-    }
+  const saveContainerData = () => {
+    const parsed = JSON.stringify(containerData);
+    sessionStorage.setItem("ContainerData", parsed);
   };
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      saveVehicleData();
+      saveContainerData();
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -165,9 +152,7 @@ const Index = () => {
   };
 
   useEffect(() => {
-    if (isStorageExist()) {
-      loadDataFromStorage();
-    }
+    loadDataFromStorage();
   }, []);
 
   useEffect(() => {
@@ -190,7 +175,7 @@ const Index = () => {
   const createResource = async () => {
     try {
       saveData();
-      saveVehicleData();
+      saveContainerData();
       loadDataFromStorage();
       setShowForm(false);
       resetResourcesStates();
@@ -254,30 +239,6 @@ const Index = () => {
               }))
             }
             onChange={(e) => setNewItem({ ...newItem, ID: e.target.value })}
-          />
-        </div>
-      </React.Fragment>
-    );
-  };
-
-  const renderSelectOrder = () => {
-    return (
-      <React.Fragment>
-        <div className={`relative h-[48px] mb-4`}>
-          <label
-            htmlFor="item"
-            className={`${labelStyle} text-[12px] left-[8px] top-[2px]`}
-          >
-            Order ID
-          </label>
-          <input
-            type="text"
-            className="block w-full px-3 pt-3 pb-1 border border-gray-300 rounded bg-[#A7AABD]"
-            disabled
-            value={newItem.OrderID}
-            onChange={(e) =>
-              setNewItem({ ...newItem, OrderID: e.target.value })
-            }
           />
         </div>
       </React.Fragment>
@@ -491,47 +452,6 @@ const Index = () => {
           />
         </div>
       </div>
-    );
-  };
-
-  const renderInputMaxWeight = () => {
-    return (
-      <React.Fragment>
-        <div className="relative h-[48px] mb-4">
-          <label
-            htmlFor="MaxWeight"
-            className={`${labelStyle} ${
-              focusedInputs.inputMW
-                ? "text-[12px] left-[8px] top-[2px]"
-                : "left-2 top-3"
-            }`}
-            style={{ pointerEvents: "none" }}
-          >
-            Max Weight (Kg)
-          </label>
-          <input
-            className="w-full h-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base  text-[16px]"
-            type="number"
-            value={newItem.MaxWeight}
-            onFocus={() =>
-              setFocusedInputs((prevState) => ({
-                ...prevState,
-                inputMW: true,
-              }))
-            }
-            onBlur={(e) =>
-              e.target.value.trim() === "" &&
-              setFocusedInputs((prevState) => ({
-                ...prevState,
-                inputMW: false,
-              }))
-            }
-            onChange={(e) =>
-              setNewItem({ ...newItem, MaxWeight: e.target.value })
-            }
-          />
-        </div>
-      </React.Fragment>
     );
   };
 
@@ -776,50 +696,51 @@ const Index = () => {
 
   return (
     <div className="w-full min-h-[100vh] flex items-center flex-col font-poppins bg-[#f4fbff]">
-      {loading ? (
+      {/* {loading ? (
         <div className="flex justify-center items-center h-full absolute top-0 left-0 right-0 bottom-0">
           <RotatingLines color="#00BFFF" height={120} width={120} />
         </div>
       ) : (
         <>
-          <div className="absolute top-5 left-8 flex flex-row items-center space-x-3 p-2">
-            <img src={logo} alt="SusunBox Logo" className="h-14 w-14" />
-            <span className="text-2xl font-poppins font-semibold logo-text-gradient">
-              SusunBox
-            </span>
-          </div>
-          <h1 className="text-[26px] font-bold mt-10">Resource Manager</h1>
-          <div className="w-[480px] relative">
-            {renderResources()}
-            <div className="absolute -left-[280px] top-5 flex flex-col w-[240px] ">
-              <button
-                className={`${
-                  lifoActive
-                    ? "bg-[#0059A6] border-[#003F6D]"
-                    : "bg-[#82B2CA] border-[#5A9BB5]"
-                } relative py-2 w-[240px] font-poppins text-white font-semibold border-2  mt-4 rounded-md hover:bg-[#0059A6] hover:border-[#003F6D]`}
-                onClick={() => setLifoActive(!lifoActive)}
-              >
-                LIFO
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className={`${
-                    !lifoActive && "hidden"
-                  } absolute top-0 right-2 h-6 w-6`}
-                />
-              </button>
-              <button
-                className="py-2 w-[240px] bg-[#82B2CA] font-poppins text-white font-semibold border-2 border-[#5A9BB5] mt-4 rounded-md shadow-lg hover:bg-[#0059A6] hover:border-[#003F6D] hover:shadow-xl transition-all duration-300"
-                onClick={processData}
-              >
-                Process Data
-              </button>
-              {renderContainerForm()}
-            </div>
-          </div>
-          {showForm && renderForm()}
+          
         </>
-      )}
+      )} */}
+      <div className="absolute top-5 left-8 flex flex-row items-center space-x-3 p-2">
+        <img src={logo} alt="SusunBox Logo" className="h-14 w-14" />
+        <span className="text-2xl font-poppins font-semibold logo-text-gradient">
+          SusunBox
+        </span>
+      </div>
+      <h1 className="text-[26px] font-bold mt-10">Resource Manager</h1>
+      <div className="w-[480px] relative">
+        {renderResources()}
+        <div className="absolute -left-[280px] top-5 flex flex-col w-[240px] ">
+          <button
+            className={`${
+              lifoActive
+                ? "bg-[#0059A6] border-[#003F6D]"
+                : "bg-[#82B2CA] border-[#5A9BB5]"
+            } relative py-2 w-[240px] font-poppins text-white font-semibold border-2  mt-4 rounded-md hover:bg-[#0059A6] hover:border-[#003F6D]`}
+            onClick={() => setLifoActive(!lifoActive)}
+          >
+            LIFO
+            <FontAwesomeIcon
+              icon={faCheck}
+              className={`${
+                !lifoActive && "hidden"
+              } absolute top-0 right-2 h-6 w-6`}
+            />
+          </button>
+          <button
+            className="py-2 w-[240px] bg-[#82B2CA] font-poppins text-white font-semibold border-2 border-[#5A9BB5] mt-4 rounded-md shadow-lg hover:bg-[#0059A6] hover:border-[#003F6D] hover:shadow-xl transition-all duration-300"
+            onClick={processData}
+          >
+            Process Data
+          </button>
+          {renderContainerForm()}
+        </div>
+      </div>
+      {showForm && renderForm()}
     </div>
   );
 };
