@@ -2,9 +2,28 @@
   "box": {
     "id": "1",
     "size_x": 50,
-    "size_y": 100,
-    "size_z": 150,
+    "size_y": 50,
+    "size_z": 50,
     "max_weight": 15
   },
-  "items": []
+  "items": [
+    {
+      "id": "1",
+      "name": "1",
+      "size_x": 1,
+      "size_y": 1,
+      "size_z": 1,
+      "weight": 1,
+      "priority": 1
+    },
+    {
+      "id": "2",
+      "name": "2",
+      "size_x": 2,
+      "size_y": 2,
+      "size_z": 2,
+      "weight": 2,
+      "priority": 2
+    }
+  ]
 }

@@ -23,7 +23,7 @@ const Animation = () => {
                 {item.Name}: {item.ID}
               </h3>
               <div>
-                Pos X: {item.PosX} Pos Y: {item.PosX} Pos Z: {item.PosZ}
+                Pos X: {item.PosX} Pos Y: {item.PosY} Pos Z: {item.PosZ}
               </div>
               <div>
                 Size X: {item.SizeX} Size Y: {item.SizeY} Size Z: {item.SizeZ}
