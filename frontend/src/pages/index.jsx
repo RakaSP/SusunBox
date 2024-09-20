@@ -221,6 +221,7 @@ const Index = () => {
             ID
           </label>
           <input
+            required
             id="ID"
             className={`block w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
             type="number"
@@ -261,6 +262,7 @@ const Index = () => {
             Item Name
           </label>
           <input
+            required
             className={` w-full px-3 h-[48px] pt-3 pb-1 mb-4 border border-gray-300 rounded`}
             type="text"
             onFocus={() =>
@@ -300,6 +302,7 @@ const Index = () => {
             Priority
           </label>
           <input
+            required
             className={`w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]`}
             type="number"
             value={newItem.Priority}
@@ -341,6 +344,7 @@ const Index = () => {
             Size X
           </label>
           <input
+            required
             id="SizeX"
             className={`${sizeFormStyle} ${
               focusedInputs.inputSize.SizeX ? "border-blue-500" : ""
@@ -382,6 +386,7 @@ const Index = () => {
             Size Y
           </label>
           <input
+            required
             id="SizeY"
             className={`${sizeFormStyle} ${
               focusedInputs.inputSize.SizeY ? "border-blue-500" : ""
@@ -423,6 +428,7 @@ const Index = () => {
             Size Z
           </label>
           <input
+            required
             id="SizeZ"
             className={`${sizeFormStyle} ${
               focusedInputs.inputSize.SizeZ ? "border-blue-500" : ""
@@ -470,6 +476,7 @@ const Index = () => {
             Weight (Kg)
           </label>
           <input
+            required
             className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
             type="number"
             value={newItem.Weight}
@@ -627,6 +634,7 @@ const Index = () => {
               Size X
             </label>
             <input
+              required
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={containerData.SizeX}
@@ -646,6 +654,7 @@ const Index = () => {
               Size Y
             </label>
             <input
+              required
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={containerData.SizeY}
@@ -662,6 +671,7 @@ const Index = () => {
               Size Z
             </label>
             <input
+              required
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={containerData.SizeZ}
@@ -678,6 +688,7 @@ const Index = () => {
               Max Weight
             </label>
             <input
+              required
               type="number"
               className="w-full pt-3 pb-1 px-3 border border-gray-300 rounded text-base h-full text-[16px]"
               value={containerData.MaxWeight}

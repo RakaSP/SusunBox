@@ -9,20 +9,20 @@
   "items": [
     {
       "id": "1",
-      "name": "1",
+      "name": "ntah",
       "size_x": 1,
-      "size_y": 1,
-      "size_z": 1,
-      "weight": 1,
+      "size_y": 2,
+      "size_z": 3,
+      "weight": 4,
       "priority": 1
     },
     {
       "id": "2",
-      "name": "2",
-      "size_x": 2,
-      "size_y": 2,
-      "size_z": 2,
-      "weight": 2,
+      "name": "ntah2",
+      "size_x": 4,
+      "size_y": 5,
+      "size_z": 6,
+      "weight": 6,
       "priority": 2
     }
   ]

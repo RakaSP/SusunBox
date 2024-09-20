@@ -22,7 +22,7 @@ const RenderPlotly = ({ container }) => {
         eye: cam,
       },
       xaxis: {
-        range: [0, container.SizeX + 20],
+        range: [0, container.SizeX * 1.3],
         tickvals: Array.from({ length: ticks[0] }, (_, i) => i * 10),
         ticktext: Array.from({ length: ticks[0] }, (_, i) => i * 10),
         nticks: ticks[0],
@@ -175,9 +175,9 @@ const RenderPlotly = ({ container }) => {
   }
   function getArrowImg() {
     // Create the shaft object representing the 3D block
-    const shaftwidth = 5;
-    const thickness = 2;
-    const shaftX = [container.SizeX * 1.15, container.SizeX * 1.4];
+    const shaftwidth = container.SizeY / 20;
+    const thickness = container.SizeZ / 30;
+    const shaftX = [container.SizeX * 1.15, container.SizeX * 1.3];
     const shaftY = [
       container.SizeY / 2 - shaftwidth,
       container.SizeY / 2 + shaftwidth,
@@ -228,7 +228,11 @@ const RenderPlotly = ({ container }) => {
     };
 
     const arrowX = [container.SizeX, shaftX[0]];
-    const arrowY = [shaftY[0] - 3, container.SizeY / 2, shaftY[1] + 3];
+    const arrowY = [
+      shaftY[0] - container.SizeY / 20,
+      container.SizeY / 2,
+      shaftY[1] + container.SizeY / 20,
+    ];
     const arrowZ = shaftZ;
     const arrowhead = {
       type: "mesh3d",
