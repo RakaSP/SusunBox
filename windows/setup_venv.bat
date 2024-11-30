@@ -1,4 +1,4 @@
-cd backend/solver
+cd ../backend/solver
 python -m venv susunbox_venv
 call susunbox_venv\Scripts\activate.bat
 

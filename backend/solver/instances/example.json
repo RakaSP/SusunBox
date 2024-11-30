@@ -9,21 +9,12 @@
   "items": [
     {
       "id": "1",
-      "name": "ntah",
-      "size_x": 1,
-      "size_y": 2,
-      "size_z": 3,
-      "weight": 4,
+      "name": "1",
+      "size_x": 21,
+      "size_y": 21,
+      "size_z": 21,
+      "weight": 1,
       "priority": 1
-    },
-    {
-      "id": "2",
-      "name": "ntah2",
-      "size_x": 4,
-      "size_y": 5,
-      "size_z": 6,
-      "weight": 6,
-      "priority": 2
     }
   ]
 }

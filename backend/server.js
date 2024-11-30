@@ -53,7 +53,7 @@ app.post("/save-json", (req, res) => {
     }
 
     exec(
-      "cd solver && python main.py --filename=../instances/example.json",
+      "cd solver && .\\susunbox_venv\\Scripts\\activate.bat && python main.py --filename=../instances/example.json",
       (execErr, stdout, stderr) => {
         if (execErr) {
           console.error("Error executing susunbox_main.py", stderr);
